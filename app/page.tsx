@@ -43,7 +43,7 @@ export default async function PaginaInicio() {
             </svg>
             {evento.lugar}
           </p>
-          <p className="mt-2 text-3xl leading-tight font-black text-azul-oscuro md:text-5xl">
+          <p className="mt-2 text-3xl leading-tight font-black text-black md:text-5xl">
             {evento.fecha} · {evento.hora}
           </p>
           <p className="lead">
