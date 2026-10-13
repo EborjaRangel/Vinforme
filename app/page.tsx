@@ -49,7 +49,7 @@ export default async function PaginaInicio() {
         </div>
         <article className="marco-qr">
           <img src="/api/qr/general" alt="Código QR general del V Informe de Coyoacán" />
-          <p>En el centro dice V Informe Coyoacán. Este es el código que se envía a las personas invitadas.</p>
+          <p>Este es el código que se envía a las personas invitadas.</p>
           <DescargarQr href="/api/qr/general" archivo="qr-v-informe-coyoacan" />
         </article>
       </section>

@@ -18,8 +18,7 @@ export default async function PaginaQrGeneral() {
       <p className="kicker">Invitación</p>
       <h1>QR general</h1>
       <p className="lead">
-        Este código se envía a todas las personas invitadas. En el centro dice V Informe Coyoacán y, al escanearlo, abre el
-        registro para confirmar asistencia.
+        Este código se envía a todas las personas invitadas. Al escanearlo, abre el registro para confirmar asistencia.
       </p>
       {local ? (
         <p className="aviso-local">
@@ -30,7 +29,7 @@ export default async function PaginaQrGeneral() {
         <p className="aviso-ok">Este QR abre: {destino}</p>
       )}
       <article className="marco-qr marco-centrado">
-        <img src="/api/qr/general" alt="Código QR general con la leyenda V Informe Coyoacán" />
+        <img src="/api/qr/general" alt="Código QR general de invitación" />
         <p>V Informe Coyoacán</p>
         <DescargarQr href="/api/qr/general" archivo="qr-v-informe-coyoacan" />
       </article>

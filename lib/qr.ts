@@ -13,6 +13,15 @@ const AZUL_RECUADRO = "#00A0DF";
 const ROJO_PRI = "#E30613";
 const AZUL_PAN = "#0039A6";
 
+export async function qrLimpio(contenido: string) {
+  return QRCode.toString(contenido, {
+    type: "svg",
+    errorCorrectionLevel: "H",
+    margin: 2,
+    color: { dark: NEGRO, light: "#FFFFFF" },
+  });
+}
+
 export async function qrConEtiqueta(contenido: string, linea1: string, linea2: string, titulo: string) {
   const svg = await QRCode.toString(contenido, {
     type: "svg",
