@@ -23,7 +23,7 @@ export default async function PaginaInicio() {
     <div className="pagina contenedor">
       {local ? (
         <p className="aviso-local">
-          El QR abre el registro en la red de esta computadora. El celular tiene que usar la misma red Wi-Fi. Cuando el sitio
+          El QR abre la página de inicio en la red de esta computadora. El celular tiene que usar la misma red Wi-Fi. Cuando el sitio
           tenga dirección pública, define APP_URL y vuelve a descargar el código antes de enviarlo.
         </p>
       ) : null}
@@ -83,7 +83,7 @@ export default async function PaginaInicio() {
           <article className="paso">
             <span>1</span>
             <h3>Recibe el QR general</h3>
-            <p>El código se comparte con todas las personas convocadas y abre el registro de asistencia.</p>
+            <p>El código se comparte con todas las personas convocadas y abre la página de inicio.</p>
           </article>
           <article className="paso">
             <span>2</span>

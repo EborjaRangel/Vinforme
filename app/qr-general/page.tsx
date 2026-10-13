@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PaginaQrGeneral() {
   const origen = await origenActual();
-  const destino = `${origen}/registro`;
+  const destino = origen;
   const local = esRedPrivada(origen);
 
   return (
@@ -18,7 +18,7 @@ export default async function PaginaQrGeneral() {
       <p className="kicker">Invitación</p>
       <h1>QR general</h1>
       <p className="lead">
-        Este código se envía a todas las personas invitadas. Al escanearlo, abre el registro para confirmar asistencia.
+        Este código se envía a todas las personas invitadas. Al escanearlo, abre la página de inicio del sitio.
       </p>
       {local ? (
         <p className="aviso-local">

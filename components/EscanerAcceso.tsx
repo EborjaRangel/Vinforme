@@ -204,9 +204,9 @@ function slugDesde(texto: string) {
   try {
     const url = new URL(limpio);
     const partes = url.pathname.split("/").filter(Boolean);
+    if (partes.length === 0 || partes[0] === "registro") return "GENERAL";
     const indice = partes.indexOf("llegada");
     if (indice >= 0 && partes[indice + 1]) return decodeURIComponent(partes[indice + 1]).toLowerCase();
-    if (partes.includes("registro")) return "GENERAL";
   } catch {
     const coincidencia = limpio.match(/llegada\/([a-z0-9-]+)/i);
     if (coincidencia?.[1]) return coincidencia[1].toLowerCase();
