@@ -25,11 +25,11 @@ export async function qrConEtiqueta(contenido: string, linea1: string, linea2: s
   if (!coincidencia) return svg;
 
   const size = Number(coincidencia[1]);
-  const ancho = size * 0.62;
-  const alto = size * 0.24;
+  const ancho = size * 0.4;
+  const alto = size * 0.16;
   const x = (size - ancho) / 2;
   const y = (size - alto) / 2;
-  const radio = size * 0.018;
+  const radio = size * 0.012;
 
   const overlay = `
     <g shape-rendering="geometricPrecision">

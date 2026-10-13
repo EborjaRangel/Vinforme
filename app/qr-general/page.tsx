@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { DescargarQr } from "@/components/DescargarQr";
-import { esOrigenLocal, origenActual } from "@/lib/origen";
+import { esRedPrivada, origenActual } from "@/lib/origen";
 
 export const metadata: Metadata = {
   title: "QR de invitación",
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function PaginaQrGeneral() {
   const origen = await origenActual();
   const destino = `${origen}/registro`;
-  const local = esOrigenLocal(origen);
+  const local = esRedPrivada(origen);
 
   return (
     <div className="pagina contenedor">
@@ -23,8 +23,8 @@ export default async function PaginaQrGeneral() {
       </p>
       {local ? (
         <p className="aviso-local">
-          Este QR apunta a {destino}. Sirve para probarlo en esta computadora. Antes de enviarlo, publica el sitio, escribe
-          esa dirección en APP_URL y descarga de nuevo el código.
+          Este QR abre {destino}. El celular tiene que estar en la misma red Wi-Fi que esta computadora. Si lo vas a enviar
+          fuera de esa red, publica el sitio, escribe la dirección en APP_URL y descarga de nuevo el código.
         </p>
       ) : (
         <p className="aviso-ok">Este QR abre: {destino}</p>

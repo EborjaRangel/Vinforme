@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DescargarQr } from "@/components/DescargarQr";
 import { evento, tituloCompleto } from "@/lib/evento";
-import { esOrigenLocal, origenActual } from "@/lib/origen";
+import { esRedPrivada, origenActual } from "@/lib/origen";
 
 export const metadata: Metadata = {
   title: "Inicio",
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PaginaInicio() {
   const origen = await origenActual();
-  const local = esOrigenLocal(origen);
+  const local = esRedPrivada(origen);
   const datos = [
     evento.fecha ? { etiqueta: "Fecha", valor: evento.fecha } : null,
     evento.hora ? { etiqueta: "Hora", valor: evento.hora } : null,
@@ -23,8 +23,8 @@ export default async function PaginaInicio() {
     <div className="pagina contenedor">
       {local ? (
         <p className="aviso-local">
-          Estás viendo el sistema en esta computadora. El QR de invitación abrirá el registro solo aquí. Cuando el sitio
-          tenga su dirección pública, define APP_URL y vuelve a descargar el código antes de enviarlo.
+          El QR abre el registro en la red de esta computadora. El celular tiene que usar la misma red Wi-Fi. Cuando el sitio
+          tenga dirección pública, define APP_URL y vuelve a descargar el código antes de enviarlo.
         </p>
       ) : null}
 

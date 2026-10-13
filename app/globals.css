@@ -148,7 +148,7 @@
 
   .marco-qr img,
   .pase img {
-    @apply mx-auto block h-auto w-full max-w-[280px];
+    @apply mx-auto block h-auto w-full max-w-[360px];
   }
 
   .marco-qr p,
