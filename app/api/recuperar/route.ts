@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { ValidationError } from "yup";
 import { esquemaRecuperacion } from "@/lib/validacion";
-import { claveDeNombre } from "@/lib/nombres";
-import { buscarPorIdentidad, guardarNotificacion } from "@/lib/store";
+import { telefonoDiez } from "@/lib/telefono";
+import { buscarPorTelefono, guardarNotificacion } from "@/lib/store";
 import { enviarConfirmacion } from "@/lib/notificaciones";
 import { origenDesdeRequest } from "@/lib/origen";
 import { ipDe, solicitudLimitada } from "@/lib/limite";
@@ -24,16 +24,26 @@ export async function POST(request: Request) {
 
   try {
     const datos = await esquemaRecuperacion.validate(cuerpo, { abortEarly: false, stripUnknown: true });
-    const clave = claveDeNombre(datos.nombre, datos.primerApellido, datos.segundoApellido);
-    const invitado = await buscarPorIdentidad(clave, datos.correo);
+    const coincidencias = await buscarPorTelefono(telefonoDiez(datos.telefono));
 
-    if (!invitado) {
+    if (coincidencias.length === 0) {
       return NextResponse.json(
-        { ok: false, mensaje: "No encontramos un registro con ese nombre completo y ese correo." },
+        { ok: false, mensaje: "No encontramos un registro con ese número celular." },
         { status: 404 },
       );
     }
 
+    if (coincidencias.length > 1) {
+      return NextResponse.json({
+        ok: true,
+        varios: coincidencias.map((persona) => ({
+          slug: persona.slug,
+          nombreCompleto: persona.nombreCompleto,
+        })),
+      });
+    }
+
+    const invitado = coincidencias[0];
     const notificacion = await enviarConfirmacion(invitado, origenDesdeRequest(request));
     await guardarNotificacion(invitado.id, notificacion);
 

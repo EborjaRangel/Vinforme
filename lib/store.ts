@@ -198,12 +198,12 @@ export async function guardarNotificacion(id: string, notificacion: Notificacion
   return resultado.rows[0] ? aInvitado(resultado.rows[0]) : null;
 }
 
-export async function buscarPorIdentidad(clave: string, correo: string) {
+export async function buscarPorTelefono(telefono: string) {
   const resultado = await consultar<Fila>(
-    `SELECT ${COLUMNAS} FROM invitados WHERE clave = $1 AND correo = $2`,
-    [clave, correo],
+    `SELECT ${COLUMNAS} FROM invitados WHERE telefono = $1 ORDER BY registrado_en DESC`,
+    [telefono],
   );
-  return resultado.rows[0] ? aInvitado(resultado.rows[0]) : null;
+  return resultado.rows.map(aInvitado);
 }
 
 export async function marcarAsistencia(slug: string, accion: "llegada" | "revertir") {

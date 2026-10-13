@@ -37,12 +37,9 @@ export const esquemaRegistro: yup.ObjectSchema<ValoresRegistro> = yup.object({
 });
 
 export const esquemaRecuperacion = yup.object({
-  nombre: nombrePersona("El nombre"),
-  primerApellido: nombrePersona("El primer apellido"),
-  segundoApellido: nombrePersona("El segundo apellido"),
-  correo: yup
+  telefono: yup
     .string()
-    .transform((valor) => (typeof valor === "string" ? valor.trim().toLowerCase() : valor))
-    .required("El correo electrónico es obligatorio.")
-    .email("Ingresa un correo electrónico válido."),
+    .transform((valor) => (typeof valor === "string" ? valor.trim() : valor))
+    .required("El teléfono es obligatorio.")
+    .test("diez-digitos", "Ingresa el celular de 10 dígitos con el que te registraste.", (valor) => telefonoDiez(valor ?? "").length === 10),
 });
