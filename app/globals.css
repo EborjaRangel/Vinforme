@@ -1,0 +1,404 @@
+@import "tailwindcss";
+
+@theme {
+  --color-azul: #00a0df;
+  --color-azul-oscuro: #0077a8;
+  --color-rojo: #e91d2c;
+  --color-oro: #fdb614;
+  --color-morado: #704d9f;
+  --color-morado-oscuro: #36246b;
+  --color-tinta: #3d4449;
+  --color-tinta-suave: #7f888f;
+  --color-papel: #f5f6f7;
+  --color-linea: #e3e3e3;
+  --font-sans: "Segoe UI", "Helvetica Neue", sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-papel font-sans text-tinta;
+    background-image:
+      radial-gradient(circle at 40px 40px, rgb(0 160 223 / 0.07) 18px, transparent 19px),
+      radial-gradient(circle at 120px 110px, rgb(233 29 44 / 0.05) 22px, transparent 23px);
+    background-size: 180px 180px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-black tracking-tight text-azul-oscuro;
+  }
+
+  h1 {
+    @apply text-4xl leading-none md:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl text-azul;
+  }
+
+  h3 {
+    @apply text-xl text-tinta;
+  }
+
+  a {
+    @apply text-inherit;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-azul);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  .pagina {
+    @apply py-8;
+  }
+
+  .contenedor {
+    @apply mx-auto w-[min(1120px,calc(100%-2rem))];
+  }
+
+  .kicker {
+    @apply mb-2 text-xs font-bold tracking-[0.16em] text-rojo uppercase;
+  }
+
+  .lead {
+    @apply max-w-3xl text-lg text-tinta-suave;
+  }
+
+  .lead-centro {
+    @apply mx-auto;
+  }
+
+  .hero {
+    @apply grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr];
+  }
+
+  .acciones,
+  .barra-herramientas,
+  .acciones-fila {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .acciones-fila {
+    @apply mt-3 gap-2;
+  }
+
+  .boton,
+  .boton-secundario,
+  .boton-peligro,
+  .boton-pequeno {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center rounded-md px-4 py-2 font-semibold no-underline;
+  }
+
+  .boton {
+    @apply bg-azul text-white hover:bg-azul-oscuro;
+  }
+
+  .boton-secundario,
+  .boton-pequeno {
+    @apply border border-azul bg-white text-azul hover:bg-papel;
+  }
+
+  .boton-pequeno {
+    @apply min-h-9 px-3 text-sm;
+  }
+
+  .boton-peligro {
+    @apply border border-rojo bg-white text-rojo;
+  }
+
+  .boton:disabled,
+  .boton-secundario:disabled,
+  .boton-pequeno:disabled {
+    @apply cursor-wait opacity-60;
+  }
+
+  .filtros button[aria-pressed="true"] {
+    @apply bg-azul text-white;
+  }
+
+  .marco-qr,
+  .tarjeta,
+  .paso,
+  .persona,
+  .resultado-scan {
+    @apply rounded-lg border border-linea bg-white shadow-sm;
+  }
+
+  .marco-qr {
+    @apply px-4 pt-4 pb-3 text-center;
+  }
+
+  .marco-centrado {
+    @apply mx-auto mt-5 max-w-[420px];
+  }
+
+  .marco-qr img,
+  .pase img {
+    @apply mx-auto block h-auto w-full max-w-[280px];
+  }
+
+  .marco-qr p,
+  .nota,
+  .paso p,
+  .persona p,
+  .metrica p {
+    @apply text-tinta-suave;
+  }
+
+  .seccion {
+    @apply mt-12;
+  }
+
+  .pasos,
+  .metricas,
+  .detalle-evento {
+    @apply grid gap-4;
+  }
+
+  .pasos {
+    @apply mt-4 sm:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .detalle-evento {
+    @apply sm:grid-cols-3;
+  }
+
+  .paso,
+  .tarjeta,
+  .persona {
+    @apply p-4;
+  }
+
+  .paso span,
+  .sello {
+    @apply grid h-10 w-10 place-items-center rounded-full bg-morado font-black text-white ring-2 ring-oro;
+  }
+
+  .paso span {
+    @apply mb-3 bg-azul text-base ring-0;
+  }
+
+  .paso h3 {
+    @apply mb-1;
+  }
+
+  .aviso-local,
+  .aviso-error,
+  .aviso-ok {
+    @apply mb-4 rounded-md border px-4 py-3;
+  }
+
+  .aviso-local {
+    @apply border-oro bg-oro/15 text-[#6a4b00];
+  }
+
+  .aviso-error {
+    @apply border-rojo bg-rojo/10 text-rojo;
+  }
+
+  .aviso-ok {
+    @apply border-azul bg-azul/10 text-azul-oscuro;
+  }
+
+  .formulario,
+  .recuperar {
+    @apply mt-5;
+  }
+
+  .recuperar {
+    @apply rounded-lg border border-linea bg-white p-4;
+  }
+
+  .recuperar summary {
+    @apply flex min-h-11 cursor-pointer items-center font-bold text-azul-oscuro;
+  }
+
+  .rejilla-form {
+    @apply grid gap-4 md:grid-cols-2;
+  }
+
+  .campo-ancho {
+    @apply md:col-span-2;
+  }
+
+  .campo {
+    @apply flex flex-col gap-1.5 font-semibold;
+  }
+
+  .campo input,
+  .campo textarea,
+  .buscador input,
+  .login input {
+    @apply w-full rounded-md border border-linea bg-white px-3 py-3 font-normal text-tinta;
+  }
+
+  .campo textarea {
+    @apply min-h-24 resize-y;
+  }
+
+  .campo input[aria-invalid="true"],
+  .campo textarea[aria-invalid="true"] {
+    @apply border-rojo;
+  }
+
+  .error {
+    @apply text-sm font-semibold text-rojo;
+  }
+
+  .acepta {
+    @apply mt-4 flex items-start gap-3 font-normal;
+  }
+
+  .acepta input {
+    @apply mt-1 h-4 w-4;
+  }
+
+  .trampa {
+    @apply absolute -left-[10000px] h-0 w-0 opacity-0;
+  }
+
+  .pase {
+    @apply mx-auto mt-5 w-full max-w-[460px] rounded-lg border border-linea bg-white px-5 py-6 text-center shadow-sm;
+    border-top: 6px solid var(--color-azul);
+    border-bottom: 6px solid var(--color-rojo);
+  }
+
+  .pase .sello {
+    @apply mx-auto mb-3;
+  }
+
+  .pase-acciones {
+    @apply mt-4 justify-center;
+  }
+
+  .pase-nota {
+    @apply text-center;
+  }
+
+  .folio {
+    @apply text-sm break-all text-tinta-suave;
+  }
+
+  .metricas {
+    @apply my-4 md:grid-cols-[1.4fr_1fr_1fr];
+  }
+
+  .metrica {
+    @apply rounded-lg border border-linea bg-white p-4;
+  }
+
+  .metrica strong {
+    @apply block text-5xl leading-none font-black text-azul;
+  }
+
+  .metrica-principal {
+    @apply border-azul bg-azul text-white;
+  }
+
+  .metrica-principal strong,
+  .metrica-principal p {
+    @apply text-white;
+  }
+
+  .buscador {
+    @apply min-w-[min(100%,260px)] flex-1;
+  }
+
+  .tabla-contenedor {
+    @apply max-h-[68vh] overflow-auto rounded-lg border border-linea bg-white;
+  }
+
+  .tabla {
+    @apply w-full min-w-[860px] border-collapse;
+  }
+
+  .tabla th,
+  .tabla td {
+    @apply border-b border-linea px-3 py-3 text-left align-top;
+  }
+
+  .tabla th {
+    @apply sticky top-0 bg-papel text-sm text-azul-oscuro;
+  }
+
+  .estado {
+    @apply inline-flex min-h-7 items-center rounded-full bg-oro/20 px-2 text-sm text-[#6a4b00];
+  }
+
+  .estado-ok {
+    @apply bg-azul/15 text-azul-oscuro;
+  }
+
+  .tarjetas-persona {
+    @apply hidden gap-3;
+  }
+
+  .lector {
+    @apply min-h-[280px] w-full max-w-[460px] overflow-hidden rounded-lg bg-morado-oscuro;
+  }
+
+  .resultado-scan h2 {
+    @apply text-3xl;
+  }
+
+  .llegada {
+    @apply pt-2 text-center;
+  }
+
+  .contador-puerta {
+    @apply mx-auto my-4 w-full max-w-[280px] rounded-lg bg-azul p-4 text-white;
+  }
+
+  .contador-puerta strong {
+    @apply block text-5xl leading-none font-black;
+  }
+
+  .login {
+    @apply w-full max-w-[440px];
+  }
+
+  .oculto {
+    @apply absolute h-0 w-0 overflow-hidden;
+  }
+}
+
+@media (max-width: 860px) {
+  .tabla-contenedor {
+    display: none;
+  }
+
+  .tarjetas-persona {
+    display: grid;
+  }
+}
+
+@media print {
+  header,
+  footer,
+  .no-imprimir,
+  .acciones {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .pase {
+    box-shadow: none;
+  }
+}

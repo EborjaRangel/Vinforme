@@ -1,0 +1,8 @@
+node_modules
+.next
+out
+.env.local
+data/invitados.json
+*.log
+.DS_Store
+tsconfig.tsbuildinfo
