@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { haySesionAdmin } from "@/lib/auth";
+import { claveAdmin, clavesIguales, haySesionAdmin } from "@/lib/auth";
+import { ipDe, solicitudLimitada } from "@/lib/limite";
 import { slugValido } from "@/lib/nombres";
 import { marcarAsistencia } from "@/lib/store";
 
@@ -29,8 +30,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, mensaje: "La acción no es válida." }, { status: 400 });
   }
 
-  if (accion === "revertir" && !(await haySesionAdmin())) {
+  const sesion = await haySesionAdmin();
+
+  if (accion === "revertir" && !sesion) {
     return NextResponse.json({ ok: false, mensaje: "No autorizado." }, { status: 401 });
+  }
+
+  if (accion === "llegada" && !sesion) {
+    const clave = "clave" in cuerpo ? String((cuerpo as { clave?: unknown }).clave ?? "") : "";
+    const esperada = claveAdmin();
+    if (!esperada || !clavesIguales(clave, esperada)) {
+      if (solicitudLimitada(`checkin-clave:${ipDe(request)}`, 8, 15 * 60 * 1000)) {
+        return NextResponse.json(
+          { ok: false, mensaje: "Demasiados intentos. Espera unos minutos." },
+          { status: 429 },
+        );
+      }
+      return NextResponse.json(
+        { ok: false, mensaje: "La clave no es correcta. Solo el personal autorizado puede registrar la llegada." },
+        { status: 401 },
+      );
+    }
   }
 
   const resultado = await marcarAsistencia(slug, accion);
