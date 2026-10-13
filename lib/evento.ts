@@ -4,9 +4,9 @@ export const evento = {
   alcaldia: "Coyoacán",
   entidad: "Alcaldía Coyoacán",
   ciudad: "Ciudad de México",
-  fecha: "",
-  hora: "",
-  lugar: "",
+  fecha: "Domingo 15 de noviembre",
+  hora: "11:00 a.m.",
+  lugar: "Estadio Azteca",
 };
 
 export const tituloEvento = `${evento.edicion} ${evento.nombre}`;

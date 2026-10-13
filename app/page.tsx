@@ -34,6 +34,10 @@ export default async function PaginaInicio() {
             {evento.entidad} · {evento.ciudad}
           </p>
           <h1>{tituloCompleto}</h1>
+          <p className="mt-3 text-xl font-bold text-tinta">{evento.lugar}</p>
+          <p className="font-semibold text-azul-oscuro">
+            {evento.fecha} · {evento.hora}
+          </p>
           <p className="lead">
             Comparte el código general con las personas invitadas. Al escanearlo confirman su asistencia, reciben el aviso
             en su celular y en su correo, y obtienen un pase con un QR hecho a partir de su nombre.
