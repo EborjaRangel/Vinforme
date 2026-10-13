@@ -5,13 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start -H 0.0.0.0"
   },
   "dependencies": {
     "formik": "^2.4.6",
     "html5-qrcode": "^2.3.8",
     "next": "^15.5.4",
     "nodemailer": "^6.10.1",
+    "pg": "^8.23.1",
     "qrcode": "^1.5.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -21,6 +22,7 @@
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.15.30",
     "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.23.1",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
