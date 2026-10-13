@@ -1,14 +1,10 @@
 import Link from "next/link";
+import { Coyote } from "@/components/Coyote";
 
 export function Marca() {
   return (
     <Link href="/" className="flex min-w-0 items-center gap-3 text-tinta no-underline">
-      <span
-        className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-morado text-2xl font-black text-white ring-2 ring-oro"
-        aria-hidden="true"
-      >
-        C
-      </span>
+      <Coyote className="h-14 w-14 shrink-0" />
       <span className="leading-none">
         <span className="block text-[0.68rem] font-semibold tracking-[0.22em] text-tinta-suave">ALCALDÍA</span>
         <span className="block text-2xl font-black tracking-tight sm:text-[1.7rem]">
