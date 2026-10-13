@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { NavCliente } from "@/components/NavCliente";
 import { Marca } from "@/components/Marca";
-import { navegacion } from "@/lib/navegacion";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -42,19 +41,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {children}
         </main>
         <footer className="mt-16 border-t border-linea bg-white">
-          <div className="mx-auto grid w-[min(1120px,calc(100%-2rem))] gap-6 py-8 md:grid-cols-[1.3fr_1fr]">
+          <div className="mx-auto grid w-[min(1120px,calc(100%-2rem))] gap-6 py-8">
             <div>
               <Marca />
               <p className="mt-3 text-tinta-suave">Sistema de confirmación de asistencia y control de acceso.</p>
             </div>
-            <nav className="flex flex-wrap content-start gap-x-5 gap-y-2" aria-label="Menú del pie">
-              {navegacion.map((item) => (
-                <a key={item.href} href={item.href} className="inline-flex min-h-11 items-center font-semibold text-azul no-underline">
-                  {item.etiqueta}
-                </a>
-              ))}
-            </nav>
-            <p className="border-t border-linea pt-4 text-sm text-tinta-suave md:col-span-2">
+            <p className="border-t border-linea pt-4 text-sm text-tinta-suave">
               Los datos de este registro se usan únicamente para confirmar la asistencia y controlar el ingreso al V Informe
               de Gobierno de Coyoacán.
             </p>
