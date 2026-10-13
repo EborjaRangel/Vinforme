@@ -82,31 +82,45 @@ async function enviarCorreo(invitado: Invitado, enlacePase: string): Promise<{ e
   }
 }
 
-async function enviarSms(invitado: Invitado, enlacePase: string): Promise<{ estado: CanalAviso; detalle: string }> {
+function numeroWhatsapp(valor: string) {
+  const limpio = valor.trim();
+  if (limpio.toLowerCase().startsWith("whatsapp:")) return limpio;
+  return `whatsapp:${limpio}`;
+}
+
+async function enviarWhatsapp(invitado: Invitado, enlacePase: string): Promise<{ estado: CanalAviso; detalle: string }> {
   const mensaje = `${tituloCompleto}: ${invitado.nombre}, tu asistencia está confirmada. Tu pase: ${enlacePase}`;
-  const destino = telefonoInternacional(invitado.telefono);
+  const destino = numeroWhatsapp(telefonoInternacional(invitado.telefono));
 
   try {
     if (twilioListo()) {
       const sid = process.env.TWILIO_ACCOUNT_SID ?? "";
       const token = process.env.TWILIO_AUTH_TOKEN ?? "";
+      const campos = new URLSearchParams({
+        To: destino,
+        From: numeroWhatsapp(process.env.TWILIO_FROM ?? ""),
+      });
+      const plantilla = process.env.TWILIO_CONTENT_SID?.trim();
+      if (plantilla) {
+        campos.set("ContentSid", plantilla);
+        campos.set("ContentVariables", JSON.stringify({ "1": invitado.nombre, "2": enlacePase }));
+      } else {
+        campos.set("Body", mensaje);
+      }
+
       const respuesta = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
         method: "POST",
         headers: {
           Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`,
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: new URLSearchParams({
-          To: destino,
-          From: process.env.TWILIO_FROM ?? "",
-          Body: mensaje,
-        }),
+        body: campos,
         signal: AbortSignal.timeout(15000),
       });
 
       if (!respuesta.ok) {
         const cuerpo = await respuesta.text();
-        return { estado: "error", detalle: acortar(cuerpo || "Twilio rechazó el SMS.") };
+        return { estado: "error", detalle: acortar(cuerpo || "Twilio rechazó el WhatsApp.") };
       }
 
       return { estado: "enviado", detalle: "" };
@@ -123,13 +137,14 @@ async function enviarSms(invitado: Invitado, enlacePase: string): Promise<{ esta
           telefono: destino,
           mensaje,
           nombre: invitado.nombreCompleto,
+          canal: "whatsapp",
         }),
         signal: AbortSignal.timeout(15000),
       });
 
       if (!respuesta.ok) {
         const cuerpo = await respuesta.text();
-        return { estado: "error", detalle: acortar(cuerpo || "El webhook de SMS rechazó el envío.") };
+        return { estado: "error", detalle: acortar(cuerpo || "El webhook de WhatsApp rechazó el envío.") };
       }
 
       return { estado: "enviado", detalle: "" };
@@ -137,17 +152,17 @@ async function enviarSms(invitado: Invitado, enlacePase: string): Promise<{ esta
 
     return {
       estado: "no_configurado",
-      detalle: `Falta Twilio o SMS_WEBHOOK_URL. Destino previsto: ${formatearTelefono(invitado.telefono)}.`,
+      detalle: `Falta Twilio. Destino previsto: ${formatearTelefono(invitado.telefono)}.`,
     };
   } catch (error) {
-    const texto = error instanceof Error ? error.message : "No se pudo enviar el SMS.";
+    const texto = error instanceof Error ? error.message : "No se pudo enviar el WhatsApp.";
     return { estado: "error", detalle: acortar(texto) };
   }
 }
 
 export async function enviarConfirmacion(invitado: Invitado, origen: string): Promise<Notificacion> {
   const enlacePase = `${origen}/confirmacion/${invitado.slug}`;
-  const [correo, sms] = await Promise.all([enviarCorreo(invitado, enlacePase), enviarSms(invitado, enlacePase)]);
+  const [correo, sms] = await Promise.all([enviarCorreo(invitado, enlacePase), enviarWhatsapp(invitado, enlacePase)]);
 
   return {
     correo: correo.estado,

@@ -48,7 +48,7 @@ export default async function PaginaInicio() {
           </p>
           <p className="lead">
             Comparte el código general con las personas invitadas. Al escanearlo confirman su asistencia, reciben el aviso
-            en su celular y en su correo, y obtienen un pase con un QR hecho a partir de su nombre.
+            por WhatsApp y por correo, y obtienen un pase con un QR hecho a partir de su nombre.
           </p>
           <div className="acciones">
             <Link className="boton" href="/registro">
@@ -93,7 +93,7 @@ export default async function PaginaInicio() {
           <article className="paso">
             <span>3</span>
             <h3>Recibe su pase</h3>
-            <p>Le llega la confirmación al celular y al correo, con un QR personal generado a partir de su nombre.</p>
+            <p>Le llega la confirmación por WhatsApp y por correo, con un QR personal generado a partir de su nombre.</p>
           </article>
           <article className="paso">
             <span>4</span>

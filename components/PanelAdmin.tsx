@@ -130,11 +130,11 @@ export function PanelAdmin({
       {!mensajeria.correo || !mensajeria.sms ? (
         <p className="aviso-local">
           {!mensajeria.correo ? "El correo aún no está configurado. " : "El correo está listo. "}
-          {!mensajeria.sms ? "El SMS aún no está configurado. " : "El SMS está listo. "}
-          Completa las variables del archivo .env.local para que la confirmación llegue al celular y al correo.
+          {!mensajeria.sms ? "WhatsApp aún no está configurado. " : "WhatsApp está listo. "}
+          Completa Twilio en Vercel para que la confirmación llegue por WhatsApp y por correo.
         </p>
       ) : (
-        <p className="aviso-ok">El correo y el SMS están configurados. Las confirmaciones se envían al registrarse.</p>
+        <p className="aviso-ok">El correo y WhatsApp están configurados. Las confirmaciones se envían al registrarse.</p>
       )}
 
       <div className="metricas" aria-live="polite">
@@ -228,7 +228,7 @@ export function PanelAdmin({
                     <td>
                       Correo: {textoCanal(persona.notificacion.correo)}
                       <br />
-                      SMS: {textoCanal(persona.notificacion.sms)}
+                      WhatsApp: {textoCanal(persona.notificacion.sms)}
                     </td>
                     <td>
                       <Acciones
@@ -254,7 +254,7 @@ export function PanelAdmin({
                   {formatearTelefono(persona.telefono)} · {persona.correo}
                 </p>
                 <p>
-                  Correo {textoCanal(persona.notificacion.correo)} · SMS {textoCanal(persona.notificacion.sms)}
+                  Correo {textoCanal(persona.notificacion.correo)} · WhatsApp {textoCanal(persona.notificacion.sms)}
                   {persona.llegadaEn ? ` · Ingreso ${formatoFechaHora(persona.llegadaEn)}` : ""}
                 </p>
                 <Acciones persona={persona} ocupado={ocupado} onCambiar={cambiar} onReenviar={reenviar} />

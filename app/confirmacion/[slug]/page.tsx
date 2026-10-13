@@ -60,7 +60,7 @@ export default async function PaginaConfirmacion({ params }: Contexto) {
 }
 
 function textoCanal(canal: "correo" | "sms", estado: CanalAviso, destino: string) {
-  const medio = canal === "correo" ? "correo" : "celular";
+  const medio = canal === "correo" ? "correo" : "WhatsApp";
   if (estado === "enviado") return `Enviamos la confirmación a tu ${medio}: ${destino}.`;
   if (estado === "error") return `No se pudo enviar la confirmación a tu ${medio}. Conserva este pase en la pantalla.`;
   return `La confirmación por ${medio} todavía no está activada en el sistema. Este pase en pantalla es tu comprobante.`;
