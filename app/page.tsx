@@ -34,8 +34,16 @@ export default async function PaginaInicio() {
             {evento.entidad} · {evento.ciudad}
           </p>
           <h1>{tituloCompleto}</h1>
-          <p className="mt-3 text-xl font-bold text-tinta">{evento.lugar}</p>
-          <p className="font-semibold text-azul-oscuro">
+          <p className="mt-4 flex items-center gap-2 text-4xl leading-tight font-black text-tinta md:text-5xl">
+            <svg viewBox="0 0 24 24" className="h-[0.9em] w-[0.9em] shrink-0 text-rojo" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"
+              />
+            </svg>
+            {evento.lugar}
+          </p>
+          <p className="mt-2 text-3xl leading-tight font-black text-azul-oscuro md:text-5xl">
             {evento.fecha} · {evento.hora}
           </p>
           <p className="lead">
