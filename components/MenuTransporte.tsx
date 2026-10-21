@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export function MenuTransporte({ activo, esAdmin }: { activo: string; esAdmin: boolean }) {
-  const router = useRouter();
   const enlaces = [
     { href: "/transporte", id: "inicio", etiqueta: "Inicio" },
     { href: "/transporte/despacho", id: "despacho", etiqueta: "Despachar" },
@@ -24,7 +22,7 @@ export function MenuTransporte({ activo, esAdmin }: { activo: string; esAdmin: b
         type="button"
         onClick={async () => {
           await fetch("/api/transporte/logout", { method: "POST" });
-          router.refresh();
+          window.location.assign("/transporte");
         }}
       >
         Salir

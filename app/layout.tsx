@@ -22,6 +22,24 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="es">
       <body className="flex min-h-screen flex-col">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function () {
+              try {
+                var ruta = location.pathname;
+                if (ruta.indexOf("/confirmacion") === 0 || ruta.indexOf("/llegada") === 0) return;
+                if (ruta === "/") {
+                  sessionStorage.setItem("informe-arranque", "1");
+                  return;
+                }
+                if (!sessionStorage.getItem("informe-arranque")) {
+                  sessionStorage.setItem("informe-arranque", "1");
+                  location.replace("/");
+                }
+              } catch (error) {}
+            })();`,
+          }}
+        />
         <a className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-3 focus:py-2 focus:text-azul" href="#contenido">
           Saltar al contenido
         </a>

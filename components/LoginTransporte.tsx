@@ -1,11 +1,9 @@
 "use client";
 
 import { useFormik } from "formik";
-import { useRouter } from "next/navigation";
 import { esquemaLoginTransporte } from "@/lib/validacion";
 
 export function LoginTransporte() {
-  const router = useRouter();
   const formik = useFormik({
     initialValues: { usuario: "", clave: "" },
     validationSchema: esquemaLoginTransporte,
@@ -22,7 +20,7 @@ export function LoginTransporte() {
           helpers.setStatus(datos.mensaje ?? "No fue posible entrar.");
           return;
         }
-        router.refresh();
+        window.location.assign("/transporte");
       } catch {
         helpers.setStatus("No fue posible entrar. Intenta de nuevo.");
       }
