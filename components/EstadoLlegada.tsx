@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useFormik } from "formik";
+import { useState } from "react";
 import { formatoFechaHora } from "@/lib/formato";
 import type { ResumenAsistencia } from "@/lib/types";
+import { esquemaClave } from "@/lib/validacion";
 
 export function EstadoLlegada({
   slug,
@@ -11,21 +13,19 @@ export function EstadoLlegada({
   slug: string;
   llegadaInicial: string | null;
 }) {
-  const [clave, setClave] = useState("");
-  const [fase, setFase] = useState<"esperando" | "enviando" | "nuevo" | "previo" | "error">("esperando");
+  const [fase, setFase] = useState<"esperando" | "nuevo" | "previo">("esperando");
   const [hora, setHora] = useState(llegadaInicial);
   const [resumen, setResumen] = useState<ResumenAsistencia | null>(null);
-  const [mensaje, setMensaje] = useState("");
-
-  async function registrar(evento: FormEvent) {
-    evento.preventDefault();
-    setFase("enviando");
-    setMensaje("");
-    try {
+  const formik = useFormik({
+    initialValues: { clave: "" },
+    validationSchema: esquemaClave,
+    onSubmit: async (valores, helpers) => {
+      helpers.setStatus("");
+      try {
       const respuesta = await fetch("/api/checkin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, accion: "llegada", clave }),
+        body: JSON.stringify({ slug, accion: "llegada", clave: valores.clave }),
       });
       const datos = (await respuesta.json()) as {
         mensaje?: string;
@@ -34,18 +34,17 @@ export function EstadoLlegada({
         resumen?: ResumenAsistencia;
       };
       if (!respuesta.ok || !datos.invitado) {
-        setFase("error");
-        setMensaje(datos.mensaje ?? "No se pudo registrar el ingreso.");
+        helpers.setStatus(datos.mensaje ?? "No se pudo registrar el ingreso.");
         return;
       }
       setHora(datos.invitado.llegadaEn);
       setResumen(datos.resumen ?? null);
       setFase(datos.yaEstaba ? "previo" : "nuevo");
-    } catch {
-      setFase("error");
-      setMensaje("No hubo conexión para registrar el ingreso.");
-    }
-  }
+      } catch {
+        helpers.setStatus("No hubo conexión para registrar el ingreso.");
+      }
+    },
+  });
 
   if (fase === "nuevo" || fase === "previo") {
     return (
@@ -65,7 +64,7 @@ export function EstadoLlegada({
   }
 
   return (
-    <form className="formulario" onSubmit={registrar}>
+    <form className="formulario" onSubmit={formik.handleSubmit}>
       <p className="lead lead-centro">
         Solo el personal autorizado puede registrar esta llegada. Sin la clave, el ingreso no se cuenta.
       </p>
@@ -75,18 +74,19 @@ export function EstadoLlegada({
           type="password"
           name="clave"
           autoComplete="current-password"
-          value={clave}
-          onChange={(evento) => setClave(evento.target.value)}
-          required
+          value={formik.values.clave}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
         />
+        {formik.touched.clave && formik.errors.clave ? <small className="error">{formik.errors.clave}</small> : null}
       </label>
-      {fase === "error" ? (
+      {formik.status ? (
         <p className="aviso-error" role="alert">
-          {mensaje}
+          {formik.status}
         </p>
       ) : null}
-      <button className="boton" type="submit" disabled={fase === "enviando" || clave.trim().length === 0}>
-        {fase === "enviando" ? "Registrando…" : "Registrar ingreso"}
+      <button className="boton" type="submit" disabled={formik.isSubmitting}>
+        {formik.isSubmitting ? "Registrando…" : "Registrar ingreso"}
       </button>
     </form>
   );

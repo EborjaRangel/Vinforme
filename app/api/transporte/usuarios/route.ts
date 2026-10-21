@@ -1,7 +1,9 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
+import { ValidationError } from "yup";
 import { consultar } from "@/lib/db";
 import { hashClave, sesionTransporte } from "@/lib/transporte-auth";
+import { esquemaAltaDespacho } from "@/lib/validacion";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,18 +27,17 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ ok: false, mensaje: "La solicitud no es válida." }, { status: 400 });
   }
-  if (!cuerpo || typeof cuerpo !== "object") {
-    return NextResponse.json({ ok: false, mensaje: "La solicitud no es válida." }, { status: 400 });
-  }
-  const datos = cuerpo as { usuario?: unknown; nombre?: unknown; clave?: unknown };
-  const usuario = String(datos.usuario ?? "").trim().toLowerCase();
-  const nombre = String(datos.nombre ?? "").trim().replace(/\s+/g, " ");
-  const clave = String(datos.clave ?? "");
-  if (!/^[a-z0-9._-]{3,40}$/.test(usuario)) {
-    return NextResponse.json({ ok: false, mensaje: "El usuario debe tener entre 3 y 40 letras o números." }, { status: 400 });
-  }
-  if (nombre.length < 3 || clave.length < 8) {
-    return NextResponse.json({ ok: false, mensaje: "El nombre y una contraseña de al menos 8 caracteres son obligatorios." }, { status: 400 });
+  let usuario = "";
+  let nombre = "";
+  let clave = "";
+  try {
+    const limpio = await esquemaAltaDespacho.validate(cuerpo);
+    usuario = limpio.usuario;
+    nombre = limpio.nombre;
+    clave = limpio.clave;
+  } catch (error) {
+    const mensaje = error instanceof ValidationError ? error.message : "La solicitud no es válida.";
+    return NextResponse.json({ ok: false, mensaje }, { status: 400 });
   }
 
   try {

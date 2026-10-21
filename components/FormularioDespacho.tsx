@@ -1,6 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useFormik } from "formik";
+import { useEffect, useMemo, useState } from "react";
+import { esquemaDespacho } from "@/lib/validacion";
 
 type Dirigente = {
   id: string;
@@ -37,19 +39,71 @@ const TIPOS = [
   { id: "van", etiqueta: "Van" },
 ] as const;
 
+const iniciales = {
+  dirigenteId: "",
+  tipo: "",
+  placas: "",
+  choferNombre: "",
+  choferTelefono: "",
+  idaVuelta: "",
+  lat: "",
+  lng: "",
+  foto: null as File | null,
+};
+
 export function FormularioDespacho() {
   const [dirigentes, setDirigentes] = useState<Dirigente[]>([]);
   const [busqueda, setBusqueda] = useState("");
-  const [dirigenteId, setDirigenteId] = useState("");
-  const [tipo, setTipo] = useState("");
-  const [idaVuelta, setIdaVuelta] = useState("");
-  const [lat, setLat] = useState<number | null>(null);
-  const [lng, setLng] = useState<number | null>(null);
   const [ubicacion, setUbicacion] = useState("Aún no se toma la ubicación.");
   const [avisoLista, setAvisoLista] = useState("");
-  const [mensaje, setMensaje] = useState("");
-  const [exito, setExito] = useState("");
-  const [enviando, setEnviando] = useState(false);
+  const [fotoKey, setFotoKey] = useState(0);
+  const formik = useFormik({
+    initialValues: iniciales,
+    validationSchema: esquemaDespacho,
+    onSubmit: async (valores, helpers) => {
+      helpers.setStatus("");
+      if (!(valores.foto instanceof File)) {
+        helpers.setStatus("Toma la foto del transporte.");
+        return;
+      }
+      try {
+        const fotoLista = await fotoLigera(valores.foto);
+        if (fotoLista.size > 3 * 1024 * 1024) {
+          helpers.setStatus("La foto es demasiado pesada. Acércala a la unidad y tómala de nuevo.");
+          return;
+        }
+        const datos = new FormData();
+        datos.set("dirigenteId", valores.dirigenteId);
+        datos.set("tipo", valores.tipo);
+        datos.set("placas", valores.placas);
+        datos.set("choferNombre", valores.choferNombre);
+        datos.set("choferTelefono", valores.choferTelefono);
+        datos.set("idaVuelta", valores.idaVuelta);
+        datos.set("lat", valores.lat);
+        datos.set("lng", valores.lng);
+        datos.set("foto", fotoLista);
+        const respuesta = await fetch("/api/transporte/despacho", { method: "POST", body: datos });
+        const texto = await respuesta.text();
+        let cuerpo: { ok?: boolean; mensaje?: string } = {};
+        try {
+          cuerpo = JSON.parse(texto) as { ok?: boolean; mensaje?: string };
+        } catch {
+          cuerpo = { mensaje: "No se pudo guardar el despacho. Intenta de nuevo." };
+        }
+        if (!respuesta.ok || !cuerpo.ok) {
+          helpers.setStatus(cuerpo.mensaje ?? "No se pudo guardar el despacho.");
+          return;
+        }
+        helpers.resetForm();
+        setBusqueda("");
+        setUbicacion("Aún no se toma la ubicación.");
+        setFotoKey((valor) => valor + 1);
+        helpers.setStatus("Unidad registrada y asignada al dirigente.");
+      } catch {
+        helpers.setStatus("No hubo conexión para guardar el despacho.");
+      }
+    },
+  });
 
   useEffect(() => {
     void fetch("/api/transporte/dirigentes")
@@ -72,7 +126,7 @@ export function FormularioDespacho() {
       .slice(0, 12);
   }, [busqueda, dirigentes]);
 
-  const elegido = dirigentes.find((persona) => persona.id === dirigenteId);
+  const elegido = dirigentes.find((persona) => persona.id === formik.values.dirigenteId);
 
   async function actualizarLista() {
     setAvisoLista("Actualizando la lista de dirigentes…");
@@ -87,7 +141,7 @@ export function FormularioDespacho() {
   }
 
   function tomarUbicacion() {
-    setMensaje("");
+    formik.setStatus("");
     if (!navigator.geolocation) {
       setUbicacion("Este navegador no puede tomar la ubicación.");
       return;
@@ -95,8 +149,8 @@ export function FormularioDespacho() {
     setUbicacion("Buscando el punto de entrega…");
     navigator.geolocation.getCurrentPosition(
       (posicion) => {
-        setLat(posicion.coords.latitude);
-        setLng(posicion.coords.longitude);
+        void formik.setFieldValue("lat", String(posicion.coords.latitude));
+        void formik.setFieldValue("lng", String(posicion.coords.longitude));
         setUbicacion(
           `Ubicación lista: ${posicion.coords.latitude.toFixed(5)}, ${posicion.coords.longitude.toFixed(5)}`,
         );
@@ -106,69 +160,8 @@ export function FormularioDespacho() {
     );
   }
 
-  async function enviar(evento: FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
-    setMensaje("");
-    setExito("");
-    if (!dirigenteId || !tipo || !idaVuelta) {
-      setMensaje("Elige el dirigente, el tipo de transporte y si es ida y vuelta.");
-      return;
-    }
-    if (lat === null || lng === null) {
-      setMensaje("Toma la ubicación en el punto donde entregas la unidad.");
-      return;
-    }
-    const formulario = evento.currentTarget;
-    const foto = formulario.elements.namedItem("foto");
-    const archivo = foto instanceof HTMLInputElement ? foto.files?.[0] : undefined;
-    if (!archivo) {
-      setMensaje("Toma la foto del transporte.");
-      return;
-    }
-    setEnviando(true);
-    try {
-      const datos = new FormData(formulario);
-      datos.set("dirigenteId", dirigenteId);
-      datos.set("tipo", tipo);
-      datos.set("idaVuelta", idaVuelta);
-      datos.set("lat", String(lat));
-      datos.set("lng", String(lng));
-      const fotoLista = await fotoLigera(archivo);
-      if (fotoLista.size > 3 * 1024 * 1024) {
-        setMensaje("La foto es demasiado pesada. Acércala a la unidad y tómala de nuevo.");
-        return;
-      }
-      datos.set("foto", fotoLista);
-      const respuesta = await fetch("/api/transporte/despacho", { method: "POST", body: datos });
-      const texto = await respuesta.text();
-      let cuerpo: { ok?: boolean; mensaje?: string } = {};
-      try {
-        cuerpo = JSON.parse(texto) as { ok?: boolean; mensaje?: string };
-      } catch {
-        cuerpo = { mensaje: "No se pudo guardar el despacho. Intenta de nuevo." };
-      }
-      if (!respuesta.ok || !cuerpo.ok) {
-        setMensaje(cuerpo.mensaje ?? "No se pudo guardar el despacho.");
-        return;
-      }
-      setExito("Unidad registrada y asignada al dirigente.");
-      formulario.reset();
-      setTipo("");
-      setIdaVuelta("");
-      setDirigenteId("");
-      setBusqueda("");
-      setLat(null);
-      setLng(null);
-      setUbicacion("Aún no se toma la ubicación.");
-    } catch {
-      setMensaje("No hubo conexión para guardar el despacho.");
-    } finally {
-      setEnviando(false);
-    }
-  }
-
   return (
-    <form className="formulario rejilla-form" onSubmit={enviar}>
+    <form className="formulario rejilla-form" onSubmit={formik.handleSubmit}>
       <label className="campo campo-ancho">
         Dirigente
         <input
@@ -186,10 +179,10 @@ export function FormularioDespacho() {
         {visibles.map((persona) => (
           <button
             key={persona.id}
-            className={persona.id === dirigenteId ? "boton" : "boton-secundario"}
+            className={persona.id === formik.values.dirigenteId ? "boton" : "boton-secundario"}
             type="button"
             onClick={() => {
-              setDirigenteId(persona.id);
+              void formik.setFieldValue("dirigenteId", persona.id);
               setBusqueda(persona.nombreCompleto);
             }}
           >
@@ -197,6 +190,7 @@ export function FormularioDespacho() {
             {persona.colonia ? ` · ${persona.colonia}` : ""}
           </button>
         ))}
+        {formik.touched.dirigenteId && formik.errors.dirigenteId ? <small className="error">{formik.errors.dirigenteId}</small> : null}
       </div>
       <fieldset className="campo campo-ancho">
         <legend>Tipo de transporte</legend>
@@ -204,37 +198,42 @@ export function FormularioDespacho() {
           {TIPOS.map((item) => (
             <button
               key={item.id}
-              className={tipo === item.id ? "boton" : "boton-secundario"}
+              className={formik.values.tipo === item.id ? "boton" : "boton-secundario"}
               type="button"
-              onClick={() => setTipo(item.id)}
+              onClick={() => void formik.setFieldValue("tipo", item.id)}
             >
               {item.etiqueta}
             </button>
           ))}
         </div>
+        {formik.touched.tipo && formik.errors.tipo ? <small className="error">{formik.errors.tipo}</small> : null}
       </fieldset>
       <label className="campo">
         Placas
-        <input name="placas" required maxLength={12} autoCapitalize="characters" />
+        <input name="placas" maxLength={12} autoCapitalize="characters" value={formik.values.placas} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+        {formik.touched.placas && formik.errors.placas ? <small className="error">{formik.errors.placas}</small> : null}
       </label>
       <label className="campo">
         Nombre del chofer
-        <input name="choferNombre" required />
+        <input name="choferNombre" value={formik.values.choferNombre} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+        {formik.touched.choferNombre && formik.errors.choferNombre ? <small className="error">{formik.errors.choferNombre}</small> : null}
       </label>
       <label className="campo">
         Teléfono del chofer
-        <input name="choferTelefono" type="tel" inputMode="numeric" required placeholder="10 dígitos" />
+        <input name="choferTelefono" type="tel" inputMode="numeric" placeholder="10 dígitos" value={formik.values.choferTelefono} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+        {formik.touched.choferTelefono && formik.errors.choferTelefono ? <small className="error">{formik.errors.choferTelefono}</small> : null}
       </label>
       <fieldset className="campo campo-ancho">
         <legend>Recorrido</legend>
         <div className="acciones">
-          <button className={idaVuelta === "no" ? "boton" : "boton-secundario"} type="button" onClick={() => setIdaVuelta("no")}>
+          <button className={formik.values.idaVuelta === "no" ? "boton" : "boton-secundario"} type="button" onClick={() => void formik.setFieldValue("idaVuelta", "no")}>
             Solo ida
           </button>
-          <button className={idaVuelta === "si" ? "boton" : "boton-secundario"} type="button" onClick={() => setIdaVuelta("si")}>
+          <button className={formik.values.idaVuelta === "si" ? "boton" : "boton-secundario"} type="button" onClick={() => void formik.setFieldValue("idaVuelta", "si")}>
             Ida y vuelta
           </button>
         </div>
+        {formik.touched.idaVuelta && formik.errors.idaVuelta ? <small className="error">{formik.errors.idaVuelta}</small> : null}
       </fieldset>
       <div className="campo campo-ancho">
         <span>Punto de entrega</span>
@@ -242,19 +241,28 @@ export function FormularioDespacho() {
           Tomar ubicación
         </button>
         <p>{ubicacion}</p>
+        {formik.touched.lat && formik.errors.lat ? <small className="error">{formik.errors.lat}</small> : null}
       </div>
       <label className="campo campo-ancho">
         Foto de la unidad
-        <input name="foto" type="file" accept="image/*" capture="environment" required />
+        <input
+          key={fotoKey}
+          name="foto"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={(evento) => void formik.setFieldValue("foto", evento.target.files?.[0] ?? null)}
+        />
+        {formik.touched.foto && formik.errors.foto ? <small className="error">{formik.errors.foto}</small> : null}
       </label>
-      {mensaje ? (
+      {formik.status && formik.status !== "Unidad registrada y asignada al dirigente." ? (
         <p className="aviso-error campo-ancho" role="alert">
-          {mensaje}
+          {formik.status}
         </p>
       ) : null}
-      {exito ? <p className="aviso-ok campo-ancho">{exito}</p> : null}
-      <button className="boton" type="submit" disabled={enviando}>
-        {enviando ? "Guardando…" : "Registrar entrega"}
+      {formik.status === "Unidad registrada y asignada al dirigente." ? <p className="aviso-ok campo-ancho">{formik.status}</p> : null}
+      <button className="boton" type="submit" disabled={formik.isSubmitting}>
+        {formik.isSubmitting ? "Guardando…" : "Registrar entrega"}
       </button>
     </form>
   );

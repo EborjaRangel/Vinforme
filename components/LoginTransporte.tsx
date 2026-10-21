@@ -1,65 +1,70 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
+import { esquemaLoginTransporte } from "@/lib/validacion";
 
 export function LoginTransporte() {
   const router = useRouter();
-  const [usuario, setUsuario] = useState("");
-  const [clave, setClave] = useState("");
-  const [error, setError] = useState("");
-  const [enviando, setEnviando] = useState(false);
-
-  async function enviar(evento: FormEvent) {
-    evento.preventDefault();
-    setEnviando(true);
-    setError("");
-    try {
-      const respuesta = await fetch("/api/transporte/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario, clave }),
-      });
-      const datos = (await respuesta.json()) as { mensaje?: string };
-      if (!respuesta.ok) {
-        setError(datos.mensaje ?? "No fue posible entrar.");
-        return;
+  const formik = useFormik({
+    initialValues: { usuario: "", clave: "" },
+    validationSchema: esquemaLoginTransporte,
+    onSubmit: async (valores, helpers) => {
+      helpers.setStatus("");
+      try {
+        const respuesta = await fetch("/api/transporte/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(valores),
+        });
+        const datos = (await respuesta.json()) as { mensaje?: string };
+        if (!respuesta.ok) {
+          helpers.setStatus(datos.mensaje ?? "No fue posible entrar.");
+          return;
+        }
+        router.refresh();
+      } catch {
+        helpers.setStatus("No fue posible entrar. Intenta de nuevo.");
       }
-      router.refresh();
-    } catch {
-      setError("No fue posible entrar. Intenta de nuevo.");
-    } finally {
-      setEnviando(false);
-    }
-  }
+    },
+  });
 
   return (
     <section className="pagina contenedor">
       <p className="kicker">Transporte</p>
       <h1>Despacho de unidades</h1>
       <p className="lead">Entra con tu usuario y contraseña para registrar la entrega de un camión, microbús o van.</p>
-      <form className="formulario login" onSubmit={enviar}>
+      <form className="formulario login" onSubmit={formik.handleSubmit}>
         <label className="campo">
           Usuario
-          <input value={usuario} onChange={(evento) => setUsuario(evento.target.value)} autoComplete="username" required />
+          <input
+            name="usuario"
+            value={formik.values.usuario}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            autoComplete="username"
+          />
+          {formik.touched.usuario && formik.errors.usuario ? <small className="error">{formik.errors.usuario}</small> : null}
         </label>
         <label className="campo">
           Contraseña
           <input
+            name="clave"
             type="password"
-            value={clave}
-            onChange={(evento) => setClave(evento.target.value)}
+            value={formik.values.clave}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             autoComplete="current-password"
-            required
           />
+          {formik.touched.clave && formik.errors.clave ? <small className="error">{formik.errors.clave}</small> : null}
         </label>
-        {error ? (
+        {formik.status ? (
           <p className="aviso-error" role="alert">
-            {error}
+            {formik.status}
           </p>
         ) : null}
-        <button className="boton" type="submit" disabled={enviando}>
-          {enviando ? "Entrando…" : "Entrar"}
+        <button className="boton" type="submit" disabled={formik.isSubmitting}>
+          {formik.isSubmitting ? "Entrando…" : "Entrar"}
         </button>
       </form>
     </section>

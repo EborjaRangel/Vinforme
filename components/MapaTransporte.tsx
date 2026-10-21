@@ -136,9 +136,9 @@ export function MapaTransporte() {
         <div ref={caja} className="h-full w-full" />
       </div>
       <div className="acciones">
-        <span className="font-bold" style={{ color: COLORES.camion }}>Camión</span>
-        <span className="font-bold" style={{ color: COLORES.microbus }}>Microbús</span>
-        <span className="font-bold" style={{ color: COLORES.van }}>Van</span>
+        <span className="font-bold text-[#704D9F]">Camión</span>
+        <span className="font-bold text-[#1E8E3E]">Microbús</span>
+        <span className="font-bold text-[#F26B1D]">Van</span>
       </div>
       <section>
         <h2>Unidades por dirigente</h2>
