@@ -50,6 +50,18 @@ export function FormularioDespacho() {
 
   const elegido = dirigentes.find((persona) => persona.id === dirigenteId);
 
+  async function actualizarLista() {
+    setAvisoLista("Actualizando la lista de dirigentes…");
+    try {
+      const respuesta = await fetch("/api/transporte/dirigentes", { method: "POST" });
+      const datos = (await respuesta.json()) as { ok?: boolean; mensaje?: string; total?: number; dirigentes?: Dirigente[] };
+      setDirigentes(datos.dirigentes ?? []);
+      setAvisoLista(datos.ok ? "" : datos.mensaje || "No se pudo actualizar la lista.");
+    } catch {
+      setAvisoLista("No hubo conexión para actualizar la lista.");
+    }
+  }
+
   function tomarUbicacion() {
     setMensaje("");
     if (!navigator.geolocation) {
@@ -122,6 +134,9 @@ export function FormularioDespacho() {
           placeholder="Escribe el nombre para buscar"
         />
       </label>
+      <button className="boton-secundario" type="button" onClick={() => void actualizarLista()}>
+        Actualizar dirigentes
+      </button>
       <div className="campo-ancho grid gap-2">
         {avisoLista ? <p className="aviso-error">{avisoLista}</p> : null}
         {elegido ? <p className="aviso-ok">Asignado a {elegido.nombreCompleto}</p> : null}
