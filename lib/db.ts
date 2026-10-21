@@ -46,6 +46,58 @@ const ESQUEMA = `
     notif_correo_detalle TEXT NOT NULL DEFAULT '',
     notif_sms_detalle TEXT NOT NULL DEFAULT ''
   );
+
+  CREATE TABLE IF NOT EXISTS usuarios_transporte (
+    id TEXT PRIMARY KEY,
+    usuario TEXT NOT NULL UNIQUE,
+    nombre TEXT NOT NULL,
+    clave_hash TEXT NOT NULL,
+    es_admin BOOLEAN NOT NULL DEFAULT FALSE,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    creado_en TIMESTAMPTZ NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS dirigentes (
+    id TEXT PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    primer_apellido TEXT NOT NULL DEFAULT '',
+    segundo_apellido TEXT NOT NULL DEFAULT '',
+    nombre_completo TEXT NOT NULL,
+    telefono TEXT NOT NULL DEFAULT '',
+    colonia TEXT NOT NULL DEFAULT '',
+    seccion TEXT NOT NULL DEFAULT '',
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    estatus TEXT NOT NULL DEFAULT '',
+    actualizado_en TIMESTAMPTZ
+  );
+
+  CREATE TABLE IF NOT EXISTS sincronizaciones (
+    clave TEXT PRIMARY KEY,
+    en TIMESTAMPTZ NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS despachos (
+    id TEXT PRIMARY KEY,
+    dirigente_id TEXT NOT NULL REFERENCES dirigentes(id),
+    tipo TEXT NOT NULL,
+    placas TEXT NOT NULL,
+    chofer_nombre TEXT NOT NULL,
+    chofer_telefono TEXT NOT NULL,
+    contacto_nombre TEXT NOT NULL,
+    contacto_telefono TEXT NOT NULL,
+    ida_vuelta BOOLEAN NOT NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lng DOUBLE PRECISION NOT NULL,
+    lugar_texto TEXT NOT NULL DEFAULT '',
+    entregado_en TIMESTAMPTZ NOT NULL,
+    foto_tipo TEXT NOT NULL,
+    foto BYTEA NOT NULL,
+    usuario_id TEXT,
+    creado_en TIMESTAMPTZ NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS despachos_dirigente ON despachos (dirigente_id);
+  CREATE INDEX IF NOT EXISTS despachos_entregado ON despachos (entregado_en DESC);
 `;
 
 let esquema: Promise<void> | null = null;
