@@ -21,8 +21,6 @@ export type DespachoLista = {
   placas: string;
   choferNombre: string;
   choferTelefono: string;
-  contactoNombre: string;
-  contactoTelefono: string;
   idaVuelta: boolean;
   lat: number;
   lng: number;
@@ -180,8 +178,6 @@ export async function listarDespachos() {
     placas: string;
     chofer_nombre: string;
     chofer_telefono: string;
-    contacto_nombre: string;
-    contacto_telefono: string;
     ida_vuelta: boolean;
     lat: number;
     lng: number;
@@ -189,7 +185,7 @@ export async function listarDespachos() {
     entregado_en: Date;
   }>(`
     SELECT d.id, d.dirigente_id, g.nombre_completo AS dirigente, d.tipo, d.placas,
-           d.chofer_nombre, d.chofer_telefono, d.contacto_nombre, d.contacto_telefono,
+           d.chofer_nombre, d.chofer_telefono,
            d.ida_vuelta, d.lat, d.lng, d.lugar_texto, d.entregado_en
     FROM despachos d
     JOIN dirigentes g ON g.id = d.dirigente_id
@@ -204,8 +200,6 @@ export async function listarDespachos() {
       placas: fila.placas,
       choferNombre: fila.chofer_nombre,
       choferTelefono: fila.chofer_telefono,
-      contactoNombre: fila.contacto_nombre,
-      contactoTelefono: fila.contacto_telefono,
       idaVuelta: fila.ida_vuelta,
       lat: Number(fila.lat),
       lng: Number(fila.lng),

@@ -10,6 +10,27 @@ type Dirigente = {
   activo: boolean;
 };
 
+async function fotoLigera(archivo: File) {
+  if (archivo.size < 700_000 && archivo.type === "image/jpeg") return archivo;
+  try {
+    const imagen = await createImageBitmap(archivo);
+    const limite = 1600;
+    const escala = Math.min(1, limite / Math.max(imagen.width, imagen.height));
+    const lienzo = document.createElement("canvas");
+    lienzo.width = Math.max(1, Math.round(imagen.width * escala));
+    lienzo.height = Math.max(1, Math.round(imagen.height * escala));
+    const contexto = lienzo.getContext("2d");
+    if (!contexto) return archivo;
+    contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+    const blob = await new Promise<Blob | null>((resolver) => lienzo.toBlob(resolver, "image/jpeg", 0.72));
+    imagen.close();
+    if (!blob) return archivo;
+    return new File([blob], "unidad.jpg", { type: "image/jpeg" });
+  } catch {
+    return archivo;
+  }
+}
+
 const TIPOS = [
   { id: "camion", etiqueta: "Camión" },
   { id: "microbus", etiqueta: "Microbús" },
@@ -94,22 +115,41 @@ export function FormularioDespacho() {
       setMensaje("Toma la ubicación en el punto donde entregas la unidad.");
       return;
     }
-    const datos = new FormData(evento.currentTarget);
-    datos.set("dirigenteId", dirigenteId);
-    datos.set("tipo", tipo);
-    datos.set("idaVuelta", idaVuelta);
-    datos.set("lat", String(lat));
-    datos.set("lng", String(lng));
+    const formulario = evento.currentTarget;
+    const foto = formulario.elements.namedItem("foto");
+    const archivo = foto instanceof HTMLInputElement ? foto.files?.[0] : undefined;
+    if (!archivo) {
+      setMensaje("Toma la foto del transporte.");
+      return;
+    }
     setEnviando(true);
     try {
+      const datos = new FormData(formulario);
+      datos.set("dirigenteId", dirigenteId);
+      datos.set("tipo", tipo);
+      datos.set("idaVuelta", idaVuelta);
+      datos.set("lat", String(lat));
+      datos.set("lng", String(lng));
+      const fotoLista = await fotoLigera(archivo);
+      if (fotoLista.size > 3 * 1024 * 1024) {
+        setMensaje("La foto es demasiado pesada. Acércala a la unidad y tómala de nuevo.");
+        return;
+      }
+      datos.set("foto", fotoLista);
       const respuesta = await fetch("/api/transporte/despacho", { method: "POST", body: datos });
-      const cuerpo = (await respuesta.json()) as { ok?: boolean; mensaje?: string };
+      const texto = await respuesta.text();
+      let cuerpo: { ok?: boolean; mensaje?: string } = {};
+      try {
+        cuerpo = JSON.parse(texto) as { ok?: boolean; mensaje?: string };
+      } catch {
+        cuerpo = { mensaje: "No se pudo guardar el despacho. Intenta de nuevo." };
+      }
       if (!respuesta.ok || !cuerpo.ok) {
         setMensaje(cuerpo.mensaje ?? "No se pudo guardar el despacho.");
         return;
       }
       setExito("Unidad registrada y asignada al dirigente.");
-      evento.currentTarget.reset();
+      formulario.reset();
       setTipo("");
       setIdaVuelta("");
       setDirigenteId("");
@@ -181,14 +221,6 @@ export function FormularioDespacho() {
       <label className="campo">
         Teléfono del chofer
         <input name="choferTelefono" type="tel" inputMode="numeric" required placeholder="10 dígitos" />
-      </label>
-      <label className="campo">
-        Contacto del transporte
-        <input name="contactoNombre" required />
-      </label>
-      <label className="campo">
-        Teléfono del contacto
-        <input name="contactoTelefono" type="tel" inputMode="numeric" required placeholder="10 dígitos" />
       </label>
       <fieldset className="campo campo-ancho">
         <legend>Recorrido</legend>

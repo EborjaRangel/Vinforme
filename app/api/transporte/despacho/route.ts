@@ -27,8 +27,6 @@ export async function POST(request: Request) {
   const placas = String(formulario.get("placas") ?? "").trim().toUpperCase().replace(/\s+/g, "");
   const choferNombre = String(formulario.get("choferNombre") ?? "").trim().replace(/\s+/g, " ");
   const choferTelefono = telefonoDiez(String(formulario.get("choferTelefono") ?? ""));
-  const contactoNombre = String(formulario.get("contactoNombre") ?? "").trim().replace(/\s+/g, " ");
-  const contactoTelefono = telefonoDiez(String(formulario.get("contactoTelefono") ?? ""));
   const idaVuelta = String(formulario.get("idaVuelta") ?? "") === "si";
   const lat = Number(formulario.get("lat"));
   const lng = Number(formulario.get("lng"));
@@ -40,19 +38,20 @@ export async function POST(request: Request) {
   if (placas.length < 5 || placas.length > 12) {
     return NextResponse.json({ ok: false, mensaje: "Escribe las placas del transporte." }, { status: 400 });
   }
-  if (choferNombre.length < 3 || contactoNombre.length < 3) {
-    return NextResponse.json({ ok: false, mensaje: "Escribe el nombre del chofer y el contacto del transporte." }, { status: 400 });
+  if (choferNombre.length < 3) {
+    return NextResponse.json({ ok: false, mensaje: "Escribe el nombre del chofer." }, { status: 400 });
   }
-  if (choferTelefono.length !== 10 || contactoTelefono.length !== 10) {
-    return NextResponse.json({ ok: false, mensaje: "Los teléfonos deben tener 10 dígitos." }, { status: 400 });
+  if (choferTelefono.length !== 10) {
+    return NextResponse.json({ ok: false, mensaje: "El teléfono del chofer debe tener 10 dígitos." }, { status: 400 });
   }
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
     return NextResponse.json({ ok: false, mensaje: "Falta la ubicación del punto de entrega." }, { status: 400 });
   }
-  if (!(foto instanceof File) || foto.size === 0) {
+  if (!(foto instanceof Blob) || foto.size === 0) {
     return NextResponse.json({ ok: false, mensaje: "Toma la foto del transporte." }, { status: 400 });
   }
-  if (!foto.type.startsWith("image/") || foto.size > MAX_FOTO) {
+  const tipoFoto = foto.type || "image/jpeg";
+  if (!tipoFoto.startsWith("image/") || foto.size > MAX_FOTO) {
     return NextResponse.json({ ok: false, mensaje: "La foto debe ser una imagen de menos de 3 MB." }, { status: 400 });
   }
 
@@ -64,6 +63,7 @@ export async function POST(request: Request) {
   const lugar = await lugarDesdeCoordenadas(lat, lng);
   const id = randomUUID();
   const bytes = Buffer.from(await foto.arrayBuffer());
+  try {
   await consultar(
     `INSERT INTO despachos (
        id, dirigente_id, tipo, placas, chofer_nombre, chofer_telefono, contacto_nombre, contacto_telefono,
@@ -79,17 +79,20 @@ export async function POST(request: Request) {
       placas,
       choferNombre,
       choferTelefono,
-      contactoNombre,
-      contactoTelefono,
+      "",
+      "",
       idaVuelta,
       lat,
       lng,
       lugar,
-      foto.type,
+      tipoFoto,
       bytes,
       sesion.id,
     ],
   );
+  } catch {
+    return NextResponse.json({ ok: false, mensaje: "No se pudo guardar el despacho. Intenta de nuevo." }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true, id });
 }
