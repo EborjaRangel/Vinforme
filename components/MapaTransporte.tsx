@@ -18,8 +18,33 @@ type Despacho = {
   entregadoEn: string;
 };
 
-const COLORES = { camion: "#00A0DF", microbus: "#E91D2C", van: "#FDB614" };
+const COLORES = { camion: "#704D9F", microbus: "#1E8E3E", van: "#F26B1D" };
 const NOMBRES = { camion: "Camión", microbus: "Microbús", van: "Van" };
+
+function textoPlano(valor: string) {
+  return valor.replace(/[&<>"']/g, (caracter) => {
+    const mapa: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+    return mapa[caracter];
+  });
+}
+
+function iconoUnidad(L: typeof import("leaflet"), color: string) {
+  return L.divIcon({
+    className: "icono-unidad",
+    iconSize: [36, 24],
+    iconAnchor: [18, 22],
+    popupAnchor: [0, -18],
+    html: `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="24" viewBox="0 0 36 24" aria-hidden="true">
+      <rect x="1" y="4" width="19" height="12" rx="1.6" fill="${color}"/>
+      <path d="M20 8.2h6.4c.5 0 .9.2 1.2.6l4.2 5.1c.3.4.4.9.4 1.4V16H20V8.2z" fill="${color}"/>
+      <rect x="23.2" y="9.2" width="4.4" height="3.1" rx="0.4" fill="#ffffff" opacity="0.9"/>
+      <circle cx="9" cy="18.2" r="2.7" fill="#241c33"/>
+      <circle cx="9" cy="18.2" r="1.1" fill="#f7f7f7"/>
+      <circle cx="27" cy="18.2" r="2.7" fill="#241c33"/>
+      <circle cx="27" cy="18.2" r="1.1" fill="#f7f7f7"/>
+    </svg>`,
+  });
+}
 
 export function MapaTransporte() {
   const caja = useRef<HTMLDivElement>(null);
@@ -38,34 +63,53 @@ export function MapaTransporte() {
 
   useEffect(() => {
     const nodo = caja.current;
-    if (!nodo || despachos.length === 0) return;
+    if (!nodo) return;
     let mapa: { remove: () => void } | null = null;
     let cancelado = false;
 
-    void import("leaflet").then((modulo) => {
+    void import("leaflet").then(async (modulo) => {
       if (cancelado || !caja.current) return;
       const L = modulo.default;
-      const centro = despachos[0];
-      const instancia = L.map(caja.current).setView([centro.lat, centro.lng], 12);
+      const instancia = L.map(caja.current).setView([19.33, -99.15], 12);
       mapa = instancia;
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "&copy; OpenStreetMap",
       }).addTo(instancia);
-      const grupo = L.featureGroup();
-      for (const unidad of despachos) {
-        const marca = L.circleMarker([unidad.lat, unidad.lng], {
-          radius: 9,
-          color: COLORES[unidad.tipo],
-          fillColor: COLORES[unidad.tipo],
-          fillOpacity: 0.9,
+
+      const conjunto = L.featureGroup();
+      try {
+        const respuesta = await fetch("/coyoacan.geojson");
+        const limite = (await respuesta.json()) as GeoJSON.GeoJSON;
+        if (cancelado) return;
+        const capa = L.geoJSON(limite, {
+          style: { color: "#36246B", weight: 3, fillColor: "#704D9F", fillOpacity: 0.12 },
         });
-        marca.bindPopup(
-          `<strong>${NOMBRES[unidad.tipo]} ${unidad.placas}</strong><br>${unidad.dirigente}<br>${unidad.lugarTexto || "Punto de entrega"}<br>${formatoFechaHora(unidad.entregadoEn)}`,
-        );
-        grupo.addLayer(marca);
+        capa.addTo(instancia);
+        conjunto.addLayer(capa);
+      } catch {
+        setAviso((actual) => actual || "No se pudo dibujar el límite de Coyoacán.");
       }
-      grupo.addTo(instancia);
-      instancia.fitBounds(grupo.getBounds().pad(0.2));
+
+      const unidades = L.featureGroup();
+      for (const unidad of despachos) {
+        const marca = L.marker([unidad.lat, unidad.lng], { icon: iconoUnidad(L, COLORES[unidad.tipo]) });
+        const lugar = unidad.lugarTexto || "Punto de entrega";
+        marca.bindPopup(
+          `<strong>${textoPlano(NOMBRES[unidad.tipo])} ${textoPlano(unidad.placas)}</strong><br>${textoPlano(unidad.dirigente)}<br>${textoPlano(lugar)}<br>${textoPlano(formatoFechaHora(unidad.entregadoEn))}`,
+        );
+        unidades.addLayer(marca);
+      }
+      if (despachos.length) {
+        unidades.addTo(instancia);
+        conjunto.addLayer(unidades);
+      }
+      const ajustar = () => {
+        if (cancelado) return;
+        instancia.invalidateSize();
+        if (conjunto.getLayers().length) instancia.fitBounds(conjunto.getBounds(), { padding: [18, 18] });
+      };
+      ajustar();
+      window.setTimeout(ajustar, 150);
     });
 
     return () => {
@@ -87,11 +131,13 @@ export function MapaTransporte() {
   return (
     <div className="grid gap-6">
       {aviso ? <p className="aviso-local">{aviso}</p> : null}
-      <div ref={caja} className="h-[28rem] w-full overflow-hidden rounded-lg border border-linea" />
+      <div className="h-[28rem] w-full overflow-hidden rounded-lg border border-linea">
+        <div ref={caja} className="h-full w-full" />
+      </div>
       <div className="acciones">
-        <span className="font-bold text-azul">Camión</span>
-        <span className="font-bold text-rojo">Microbús</span>
-        <span className="font-bold text-oro">Van</span>
+        <span className="font-bold" style={{ color: COLORES.camion }}>Camión</span>
+        <span className="font-bold" style={{ color: COLORES.microbus }}>Microbús</span>
+        <span className="font-bold" style={{ color: COLORES.van }}>Van</span>
       </div>
       <section>
         <h2>Unidades por dirigente</h2>

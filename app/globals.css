@@ -377,6 +377,23 @@
   }
 }
 
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+.leaflet-container img,
+.leaflet-container canvas {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.leaflet-div-icon.icono-unidad {
+  background: transparent;
+  border: none;
+}
+
 @media (max-width: 860px) {
   .tabla-contenedor {
     display: none;
