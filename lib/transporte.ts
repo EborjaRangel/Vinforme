@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { Pool } from "pg";
 import { consultar } from "@/lib/db";
-import { hashClave } from "@/lib/transporte-auth";
+import { claveCoincide, hashClave } from "@/lib/transporte-auth";
 import { telefonoDiez } from "@/lib/telefono";
 
 export type DirigenteLista = {
@@ -45,16 +45,29 @@ function poolControl() {
 }
 
 export async function asegurarUsuarioInicial() {
-  const usuario = (process.env.TRANSPORTE_USUARIO || "despacho").trim().toLowerCase();
-  const clave = process.env.TRANSPORTE_PASSWORD || (process.env.NODE_ENV !== "production" ? "despacho-informe" : "");
+  const usuario = (process.env.TRANSPORTE_USUARIO || "admin").trim().toLowerCase();
+  const clave = process.env.TRANSPORTE_PASSWORD || "";
   if (!clave) return;
-  const existe = await consultar(`SELECT id FROM usuarios_transporte WHERE usuario = $1`, [usuario]);
-  if (existe.rows.length > 0) return;
-  await consultar(
-    `INSERT INTO usuarios_transporte (id, usuario, nombre, clave_hash, es_admin, activo, creado_en)
-     VALUES ($1, $2, $3, $4, TRUE, TRUE, $5)`,
-    [randomUUID(), usuario, "Despacho", hashClave(clave), new Date().toISOString()],
+  const existe = await consultar<{ id: string; clave_hash: string }>(
+    `SELECT id, clave_hash FROM usuarios_transporte WHERE usuario = $1`,
+    [usuario],
   );
+  const fila = existe.rows[0];
+  if (!fila) {
+    await consultar(
+      `INSERT INTO usuarios_transporte (id, usuario, nombre, clave_hash, es_admin, activo, creado_en)
+       VALUES ($1, $2, 'Administrador', $3, TRUE, TRUE, NOW())`,
+      [randomUUID(), usuario, hashClave(clave)],
+    );
+  } else if (!claveCoincide(clave, fila.clave_hash)) {
+    await consultar(
+      `UPDATE usuarios_transporte SET clave_hash = $2, es_admin = TRUE, activo = TRUE WHERE id = $1`,
+      [fila.id, hashClave(clave)],
+    );
+  } else {
+    await consultar(`UPDATE usuarios_transporte SET es_admin = TRUE, activo = TRUE WHERE id = $1`, [fila.id]);
+  }
+  await consultar(`UPDATE usuarios_transporte SET es_admin = FALSE WHERE usuario <> $1`, [usuario]);
 }
 
 export async function sincronizarDirigentes(forzar = false) {

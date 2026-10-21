@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { consultar } from "@/lib/db";
 
 const NOMBRE_COOKIE = "informe_transporte";
 const DOCE_HORAS = 60 * 60 * 12;
@@ -54,7 +55,15 @@ export function leerToken(token: string | undefined): SesionTransporte | null {
 
 export async function sesionTransporte() {
   const almacen = await cookies();
-  return leerToken(almacen.get(NOMBRE_COOKIE)?.value);
+  const token = leerToken(almacen.get(NOMBRE_COOKIE)?.value);
+  if (!token) return null;
+  const resultado = await consultar<{ usuario: string; es_admin: boolean; activo: boolean }>(
+    `SELECT usuario, es_admin, activo FROM usuarios_transporte WHERE id = $1`,
+    [token.id],
+  );
+  const fila = resultado.rows[0];
+  if (!fila?.activo) return null;
+  return { id: token.id, usuario: fila.usuario, esAdmin: fila.es_admin };
 }
 
 export async function abrirSesionTransporte(sesion: SesionTransporte) {
