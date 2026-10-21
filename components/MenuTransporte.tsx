@@ -9,7 +9,7 @@ export function MenuTransporte({ activo, esAdmin }: { activo: string; esAdmin: b
     { href: "/transporte", id: "inicio", etiqueta: "Inicio" },
     { href: "/transporte/despacho", id: "despacho", etiqueta: "Despachar" },
     { href: "/transporte/mapa", id: "mapa", etiqueta: "Mapa" },
-    ...(esAdmin ? [{ href: "/transporte/usuarios", id: "usuarios", etiqueta: "Usuarios" }] : []),
+    ...(esAdmin ? [{ href: "/transporte/usuarios", id: "usuarios", etiqueta: "Alta de despacho" }] : []),
   ];
 
   return (

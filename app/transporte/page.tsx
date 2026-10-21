@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { LoginTransporte } from "@/components/LoginTransporte";
 import { MenuTransporte } from "@/components/MenuTransporte";
 import { consultar } from "@/lib/db";
@@ -30,14 +29,6 @@ export default async function PaginaTransporte() {
           <p className="kicker">Entregas</p>
           <h2>{despachos.length}</h2>
         </article>
-      </div>
-      <div className="acciones">
-        <Link className="boton" href="/transporte/despacho">
-          Registrar una entrega
-        </Link>
-        <Link className="boton-secundario" href="/transporte/mapa">
-          Ver el mapa
-        </Link>
       </div>
     </section>
   );
