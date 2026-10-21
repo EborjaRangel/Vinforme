@@ -4,9 +4,10 @@ import { useFormik } from "formik";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MenuTransporte } from "@/components/MenuTransporte";
+import { TablaCuentas } from "@/components/TablaCuentas";
 import { esquemaAltaDespacho } from "@/lib/validacion";
 
-type Usuario = { usuario: string; nombre: string; es_admin: boolean; activo: boolean };
+type Usuario = { usuario: string; nombre: string; es_admin: boolean; activo: boolean; clave_visible?: string };
 
 export function AltaDespacho() {
   const router = useRouter();
@@ -58,14 +59,7 @@ export function AltaDespacho() {
       <h1>Alta de despacho</h1>
       <p className="lead">Da de alta a las personas que despachan los micros. Aquí se les asigna usuario y contraseña.</p>
       <MenuTransporte activo="usuarios" esAdmin />
-      <ul className="mt-4 grid gap-2">
-        {usuarios.map((persona) => (
-          <li key={persona.usuario}>
-            <strong>{persona.nombre}</strong> · {persona.usuario}
-            {persona.es_admin ? " · administrador" : " · despacho"}
-          </li>
-        ))}
-      </ul>
+      <TablaCuentas cuentas={usuarios} />
       <form className="formulario rejilla-form" onSubmit={formik.handleSubmit}>
         <label className="campo">
           Nombre

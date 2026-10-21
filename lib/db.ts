@@ -54,8 +54,11 @@ const ESQUEMA = `
     clave_hash TEXT NOT NULL,
     es_admin BOOLEAN NOT NULL DEFAULT FALSE,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
-    creado_en TIMESTAMPTZ NOT NULL
+    creado_en TIMESTAMPTZ NOT NULL,
+    clave_visible TEXT NOT NULL DEFAULT ''
   );
+
+  ALTER TABLE usuarios_transporte ADD COLUMN IF NOT EXISTS clave_visible TEXT NOT NULL DEFAULT '';
 
   CREATE TABLE IF NOT EXISTS dirigentes (
     id TEXT PRIMARY KEY,

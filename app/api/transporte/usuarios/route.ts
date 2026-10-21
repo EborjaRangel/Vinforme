@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const sesion = await sesionTransporte();
   if (!sesion?.esAdmin) return NextResponse.json({ ok: false, mensaje: "No autorizado." }, { status: 401 });
-  const resultado = await consultar<{ usuario: string; nombre: string; es_admin: boolean; activo: boolean }>(
-    `SELECT usuario, nombre, es_admin, activo FROM usuarios_transporte ORDER BY creado_en ASC`,
+  const resultado = await consultar<{ usuario: string; nombre: string; es_admin: boolean; activo: boolean; clave_visible: string }>(
+    `SELECT usuario, nombre, es_admin, activo, clave_visible FROM usuarios_transporte ORDER BY es_admin DESC, nombre ASC`,
   );
   return NextResponse.json({ ok: true, usuarios: resultado.rows });
 }
@@ -42,9 +42,9 @@ export async function POST(request: Request) {
 
   try {
     await consultar(
-      `INSERT INTO usuarios_transporte (id, usuario, nombre, clave_hash, es_admin, activo, creado_en)
-       VALUES ($1, $2, $3, $4, FALSE, TRUE, NOW())`,
-      [randomUUID(), usuario, nombre, hashClave(clave)],
+      `INSERT INTO usuarios_transporte (id, usuario, nombre, clave_hash, es_admin, activo, creado_en, clave_visible)
+       VALUES ($1, $2, $3, $4, FALSE, TRUE, NOW(), $5)`,
+      [randomUUID(), usuario, nombre, hashClave(clave), clave],
     );
   } catch {
     return NextResponse.json({ ok: false, mensaje: "Ese usuario ya existe." }, { status: 409 });

@@ -55,19 +55,26 @@ export async function asegurarUsuarioInicial() {
   const fila = existe.rows[0];
   if (!fila) {
     await consultar(
-      `INSERT INTO usuarios_transporte (id, usuario, nombre, clave_hash, es_admin, activo, creado_en)
-       VALUES ($1, $2, 'Administrador', $3, TRUE, TRUE, NOW())`,
-      [randomUUID(), usuario, hashClave(clave)],
-    );
-  } else if (!claveCoincide(clave, fila.clave_hash)) {
-    await consultar(
-      `UPDATE usuarios_transporte SET clave_hash = $2, es_admin = TRUE, activo = TRUE WHERE id = $1`,
-      [fila.id, hashClave(clave)],
+      `INSERT INTO usuarios_transporte (id, usuario, nombre, clave_hash, es_admin, activo, creado_en, clave_visible)
+       VALUES ($1, $2, 'Administrador', $3, TRUE, TRUE, NOW(), $4)`,
+      [randomUUID(), usuario, hashClave(clave), clave],
     );
   } else {
-    await consultar(`UPDATE usuarios_transporte SET es_admin = TRUE, activo = TRUE WHERE id = $1`, [fila.id]);
+    await consultar(
+      `UPDATE usuarios_transporte
+       SET clave_hash = $2, es_admin = TRUE, activo = TRUE, clave_visible = $3
+       WHERE id = $1`,
+      [fila.id, hashClave(clave), clave],
+    );
   }
   await consultar(`UPDATE usuarios_transporte SET es_admin = FALSE WHERE usuario <> $1`, [usuario]);
+  const despacho = await consultar<{ id: string; clave_hash: string; clave_visible: string }>(
+    `SELECT id, clave_hash, clave_visible FROM usuarios_transporte WHERE usuario = 'despacho'`,
+  );
+  const cuentaDespacho = despacho.rows[0];
+  if (cuentaDespacho && !cuentaDespacho.clave_visible && claveCoincide("despacho-informe", cuentaDespacho.clave_hash)) {
+    await consultar(`UPDATE usuarios_transporte SET clave_visible = $2 WHERE id = $1`, [cuentaDespacho.id, "despacho-informe"]);
+  }
 }
 
 export async function sincronizarDirigentes(forzar = false) {
