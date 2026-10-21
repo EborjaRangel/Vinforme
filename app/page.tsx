@@ -2,7 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DescargarQr } from "@/components/DescargarQr";
 import { evento, tituloCompleto } from "@/lib/evento";
+import { navegacion } from "@/lib/navegacion";
 import { esRedPrivada, origenActual } from "@/lib/origen";
+
+const modulos = [
+  { href: "/registro", texto: "Registro de las personas invitadas." },
+  { href: "/qr-general", texto: "Código general para compartir." },
+  { href: "/admin", texto: "Ingreso al evento y lista de asistencia." },
+  { href: "/transporte", texto: "Despacho de camiones, microbuses y vans." },
+] as const;
 
 export const metadata: Metadata = {
   title: "Inicio",
@@ -50,20 +58,27 @@ export default async function PaginaInicio() {
             Comparte el código general con las personas invitadas. Al escanearlo confirman su asistencia, reciben el aviso
             por WhatsApp y por correo, y obtienen un pase con un QR hecho a partir de su nombre.
           </p>
-          <div className="acciones">
-            <Link className="boton" href="/registro">
-              Confirmar asistencia
-            </Link>
-            <Link className="boton-secundario" href="/qr-general">
-              Ver QR de invitación
-            </Link>
-          </div>
         </div>
         <article className="marco-qr">
           <img src="/api/qr/general" alt="Código QR general del V Informe de Coyoacán" />
           <p>Este es el código que se envía a las personas invitadas.</p>
           <DescargarQr href="/api/qr/general" archivo="qr-v-informe-coyoacan" />
         </article>
+      </section>
+
+      <section className="seccion">
+        <h2>Módulos</h2>
+        <div className="pasos">
+          {modulos.map((modulo) => {
+            const entrada = navegacion.find((item) => item.href === modulo.href);
+            return (
+              <Link className="paso block text-tinta no-underline" href={modulo.href} key={modulo.href}>
+                <h3>{entrada?.etiqueta}</h3>
+                <p>{modulo.texto}</p>
+              </Link>
+            );
+          })}
+        </div>
       </section>
 
       {datos.length > 0 ? (

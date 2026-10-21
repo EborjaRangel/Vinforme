@@ -28,14 +28,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               try {
                 var ruta = location.pathname;
                 if (ruta.indexOf("/confirmacion") === 0 || ruta.indexOf("/llegada") === 0) return;
-                if (ruta === "/") {
+                var elegido = document.referrer.indexOf(location.origin) === 0 || sessionStorage.getItem("informe-arranque") === "1";
+                if (ruta === "/" || elegido) {
                   sessionStorage.setItem("informe-arranque", "1");
                   return;
                 }
-                if (!sessionStorage.getItem("informe-arranque")) {
-                  sessionStorage.setItem("informe-arranque", "1");
-                  location.replace("/");
-                }
+                location.replace("/");
               } catch (error) {}
             })();`,
           }}
