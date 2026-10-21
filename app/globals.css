@@ -394,13 +394,19 @@
   border: none;
 }
 
+.detalle-entregas {
+  display: none;
+}
+
 @media (max-width: 860px) {
   .tabla-contenedor {
     display: none;
   }
 
-  .tarjetas-persona {
+  .tarjetas-persona,
+  .detalle-entregas {
     display: grid;
+    gap: 0.75rem;
   }
 }
 

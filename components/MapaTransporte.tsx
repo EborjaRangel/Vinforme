@@ -11,6 +11,7 @@ type Despacho = {
   tipo: "camion" | "microbus" | "van";
   placas: string;
   choferNombre: string;
+  choferTelefono: string;
   idaVuelta: boolean;
   lat: number;
   lng: number;
@@ -95,7 +96,7 @@ export function MapaTransporte() {
         const marca = L.marker([unidad.lat, unidad.lng], { icon: iconoUnidad(L, COLORES[unidad.tipo]) });
         const lugar = unidad.lugarTexto || "Punto de entrega";
         marca.bindPopup(
-          `<strong>${textoPlano(NOMBRES[unidad.tipo])} ${textoPlano(unidad.placas)}</strong><br>${textoPlano(unidad.dirigente)}<br>${textoPlano(lugar)}<br>${textoPlano(formatoFechaHora(unidad.entregadoEn))}`,
+          `<strong>${textoPlano(NOMBRES[unidad.tipo])} ${textoPlano(unidad.placas)}</strong><br>${textoPlano(unidad.dirigente)}<br>${textoPlano(lugar)}<br>Teléfono del chofer: ${textoPlano(unidad.choferTelefono)}<br>${textoPlano(formatoFechaHora(unidad.entregadoEn))}`,
         );
         unidades.addLayer(marca);
       }
@@ -161,6 +162,7 @@ export function MapaTransporte() {
               <th>Tipo</th>
               <th>Placas</th>
               <th>Chofer</th>
+              <th>Teléfono del chofer</th>
               <th>Recorrido</th>
               <th>Lugar</th>
               <th>Foto</th>
@@ -174,6 +176,7 @@ export function MapaTransporte() {
                 <td>{NOMBRES[unidad.tipo]}</td>
                 <td>{unidad.placas}</td>
                 <td>{unidad.choferNombre}</td>
+                <td>{unidad.choferTelefono}</td>
                 <td>{unidad.idaVuelta ? "Ida y vuelta" : "Solo ida"}</td>
                 <td>{unidad.lugarTexto || `${unidad.lat.toFixed(5)}, ${unidad.lng.toFixed(5)}`}</td>
                 <td>
@@ -185,6 +188,21 @@ export function MapaTransporte() {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="detalle-entregas">
+        {despachos.map((unidad) => (
+          <article className="persona" key={unidad.id}>
+            <h3>{unidad.dirigente}</h3>
+            <p>
+              {formatoFechaHora(unidad.entregadoEn)} · {NOMBRES[unidad.tipo]} {unidad.placas}
+            </p>
+            <p>
+              {unidad.choferNombre} · {unidad.choferTelefono}
+            </p>
+            <p>{unidad.lugarTexto || "Punto de entrega"}</p>
+            <p>{unidad.idaVuelta ? "Ida y vuelta" : "Solo ida"}</p>
+          </article>
+        ))}
       </div>
     </div>
   );

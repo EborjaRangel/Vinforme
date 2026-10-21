@@ -217,16 +217,44 @@ export async function listarDespachos() {
       idaVuelta: fila.ida_vuelta,
       lat: Number(fila.lat),
       lng: Number(fila.lng),
-      lugarTexto: fila.lugar_texto,
+      lugarTexto: lugarCorto(fila.lugar_texto),
       entregadoEn: new Date(fila.entregado_en).toISOString(),
     }),
   );
 }
 
+type DireccionCorta = {
+  house_number?: string;
+  road?: string;
+  pedestrian?: string;
+  neighbourhood?: string;
+  suburb?: string;
+  quarter?: string;
+};
+
+export function lugarCorto(texto: string, direccion?: DireccionCorta) {
+  const calle = [direccion?.road || direccion?.pedestrian, direccion?.house_number].filter(Boolean).join(" ");
+  const colonia = direccion?.suburb || direccion?.neighbourhood || direccion?.quarter || "";
+  if (calle || colonia) return [calle, colonia].filter(Boolean).join(", ").slice(0, 160);
+
+  const partes = texto
+    .split(",")
+    .map((parte) => parte.trim())
+    .filter((parte) => {
+      const normal = parte.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+      if (!normal) return false;
+      if (/^\d{4,5}$/.test(normal)) return false;
+      if (normal === "mexico" || normal === "cdmx") return false;
+      if (normal.includes("ciudad de mexico") || normal.includes("coyoacan")) return false;
+      return true;
+    });
+  return partes.slice(0, 3).join(", ").slice(0, 160);
+}
+
 export async function lugarDesdeCoordenadas(lat: number, lng: number) {
   try {
     const respuesta = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${lat}&lon=${lng}`,
       {
         headers: {
           "User-Agent": "VInformeCoyoacan/1.0 (transporte)",
@@ -236,8 +264,8 @@ export async function lugarDesdeCoordenadas(lat: number, lng: number) {
       },
     );
     if (!respuesta.ok) return "";
-    const datos = (await respuesta.json()) as { display_name?: string };
-    return String(datos.display_name ?? "").slice(0, 240);
+    const datos = (await respuesta.json()) as { display_name?: string; address?: DireccionCorta };
+    return lugarCorto(String(datos.display_name ?? ""), datos.address);
   } catch {
     return "";
   }
