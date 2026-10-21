@@ -10,7 +10,7 @@ export type DirigenteLista = {
   telefono: string;
   colonia: string;
   seccion: string;
-  activo: boolean;
+  estatus: string;
 };
 
 export type DespachoLista = {
@@ -151,11 +151,12 @@ export async function listarDirigentes() {
     telefono: string;
     colonia: string;
     seccion: string;
-    activo: boolean;
+    estatus: string;
   }>(
-    `SELECT id, nombre_completo, telefono, colonia, seccion, activo
+    `SELECT id, nombre_completo, telefono, colonia, seccion, estatus
      FROM dirigentes
-     ORDER BY activo DESC, nombre_completo ASC`,
+     WHERE upper(estatus) IN ('ACTIVO', 'ALTA')
+     ORDER BY nombre_completo ASC`,
   );
   return resultado.rows.map(
     (fila): DirigenteLista => ({
@@ -164,7 +165,7 @@ export async function listarDirigentes() {
       telefono: fila.telefono,
       colonia: fila.colonia,
       seccion: fila.seccion,
-      activo: fila.activo,
+      estatus: fila.estatus,
     }),
   );
 }

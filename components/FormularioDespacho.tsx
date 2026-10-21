@@ -7,7 +7,7 @@ type Dirigente = {
   nombreCompleto: string;
   telefono: string;
   colonia: string;
-  activo: boolean;
+  estatus: string;
 };
 
 async function fotoLigera(archivo: File) {
@@ -62,7 +62,10 @@ export function FormularioDespacho() {
 
   const visibles = useMemo(() => {
     const texto = busqueda.trim().toLocaleLowerCase("es-MX");
-    const base = dirigentes.filter((persona) => persona.activo);
+    const base = dirigentes.filter((persona) => {
+      const estatus = persona.estatus.normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();
+      return estatus === "ACTIVO" || estatus === "ALTA";
+    });
     if (texto.length < 2) return base.slice(0, 12);
     return base
       .filter((persona) => persona.nombreCompleto.toLocaleLowerCase("es-MX").includes(texto))

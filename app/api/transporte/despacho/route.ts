@@ -55,9 +55,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, mensaje: "La foto debe ser una imagen de menos de 3 MB." }, { status: 400 });
   }
 
-  const dirigente = await consultar(`SELECT id FROM dirigentes WHERE id = $1`, [dirigenteId]);
-  if (!dirigente.rows[0]) {
-    return NextResponse.json({ ok: false, mensaje: "Ese dirigente no está en la lista." }, { status: 404 });
+  const dirigente = await consultar<{ estatus: string }>(`SELECT estatus FROM dirigentes WHERE id = $1`, [dirigenteId]);
+  const estatus = (dirigente.rows[0]?.estatus || "").normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();
+  if (!dirigente.rows[0] || (estatus !== "ACTIVO" && estatus !== "ALTA")) {
+    return NextResponse.json({ ok: false, mensaje: "Ese dirigente no está en alta." }, { status: 404 });
   }
 
   const lugar = await lugarDesdeCoordenadas(lat, lng);
