@@ -30,7 +30,7 @@ export function NavCliente() {
         className={
           abierto
             ? "absolute top-[calc(100%+0.6rem)] right-0 z-40 flex w-64 flex-col rounded-lg border border-linea bg-white p-2 shadow-lg md:static md:w-auto md:flex-row md:border-0 md:bg-transparent md:p-0 md:shadow-none"
-            : "hidden md:flex md:items-center md:gap-1"
+            : "hidden md:flex md:max-w-full md:flex-wrap md:items-center md:justify-end md:gap-1"
         }
       >
         {navegacion.map((item) => {

@@ -6,10 +6,10 @@ import { navegacion } from "@/lib/navegacion";
 import { esRedPrivada, origenActual } from "@/lib/origen";
 
 const modulos = [
+  { href: "/transporte", texto: "Despacho de camiones, microbuses y vans." },
   { href: "/registro", texto: "Registro de las personas invitadas." },
   { href: "/qr-general", texto: "Código general para compartir." },
   { href: "/admin", texto: "Ingreso al evento y lista de asistencia." },
-  { href: "/transporte", texto: "Despacho de camiones, microbuses y vans." },
 ] as const;
 
 export const metadata: Metadata = {
@@ -58,6 +58,11 @@ export default async function PaginaInicio() {
             Comparte el código general con las personas invitadas. Al escanearlo confirman su asistencia, reciben el aviso
             por WhatsApp y por correo, y obtienen un pase con un QR hecho a partir de su nombre.
           </p>
+          <div className="acciones">
+            <Link className="boton" href="/transporte" prefetch={false}>
+              Transporte
+            </Link>
+          </div>
         </div>
         <article className="marco-qr">
           <img src="/api/qr/general" alt="Código QR general del V Informe de Coyoacán" />

@@ -48,7 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <span className="bg-rojo" />
           </div>
           <div className="h-1 bg-oro" aria-hidden="true" />
-          <div className="mx-auto flex min-h-[4.75rem] w-[min(1120px,calc(100%-2rem))] items-center gap-4">
+          <div className="mx-auto flex min-h-[4.75rem] w-[min(1120px,calc(100%-2rem))] flex-wrap items-center gap-4 py-2">
             <Marca />
             <NavCliente />
           </div>
