@@ -138,35 +138,6 @@ export function MapaTransporte() {
     };
   }, [despachos]);
 
-  const porDirigente = useMemo(() => {
-    const mapa = new Map<string, { nombre: string; primerApellido: string; segundoApellido: string; nombrePila: string; ultimo: string; camion: number; microbus: number; van: number }>();
-    for (const unidad of despachos) {
-      const actual = mapa.get(unidad.dirigenteId) ?? {
-        nombre: unidad.dirigente,
-        primerApellido: unidad.primerApellido,
-        segundoApellido: unidad.segundoApellido,
-        nombrePila: unidad.nombre,
-        ultimo: unidad.entregadoEn,
-        camion: 0,
-        microbus: 0,
-        van: 0,
-      };
-      actual[unidad.tipo] += 1;
-      if (unidad.entregadoEn > actual.ultimo) actual.ultimo = unidad.entregadoEn;
-      mapa.set(unidad.dirigenteId, actual);
-    }
-    return [...mapa.values()].sort((a, b) => {
-      if (!porNombre) return new Date(b.ultimo).getTime() - new Date(a.ultimo).getTime();
-      const campos = [a.primerApellido, a.segundoApellido, a.nombrePila];
-      const otros = [b.primerApellido, b.segundoApellido, b.nombrePila];
-      for (let indice = 0; indice < campos.length; indice += 1) {
-        const diferencia = campos[indice].localeCompare(otros[indice], "es", { sensitivity: "base" });
-        if (diferencia) return diferencia;
-      }
-      return 0;
-    });
-  }, [despachos, porNombre]);
-
   return (
     <div className="grid gap-6">
       {aviso ? <p className="aviso-local">{aviso}</p> : null}
@@ -183,20 +154,6 @@ export function MapaTransporte() {
           Ordenar por dirigente
         </button>
       </div>
-      <section>
-        <h2>Unidades por dirigente</h2>
-        <p className="lead">Resumen: cada persona aparece una sola vez, aunque tenga varias unidades.</p>
-        <div className="resumen-dirigentes">
-          {porDirigente.map((fila) => (
-            <article className="persona" key={fila.nombre}>
-              <h3>{fila.nombre}</h3>
-              <p>
-                Camiones {fila.camion} · Microbuses {fila.microbus} · Vans {fila.van}
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
       <section>
         <h2>Entregas</h2>
         <p className="lead">Cada registro es una unidad. Si un dirigente tiene varias, aparece varias veces.</p>
