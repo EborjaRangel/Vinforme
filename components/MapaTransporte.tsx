@@ -185,7 +185,8 @@ export function MapaTransporte() {
       </div>
       <section>
         <h2>Unidades por dirigente</h2>
-        <div className="tarjetas-persona">
+        <p className="lead">Resumen: cada persona aparece una sola vez, aunque tenga varias unidades.</p>
+        <div className="resumen-dirigentes">
           {porDirigente.map((fila) => (
             <article className="persona" key={fila.nombre}>
               <h3>{fila.nombre}</h3>
@@ -196,6 +197,9 @@ export function MapaTransporte() {
           ))}
         </div>
       </section>
+      <section>
+        <h2>Entregas</h2>
+        <p className="lead">Cada registro es una unidad. Si un dirigente tiene varias, aparece varias veces.</p>
       <div className="tabla-contenedor">
         <table className="tabla">
           <thead>
@@ -247,6 +251,7 @@ export function MapaTransporte() {
           </article>
         ))}
       </div>
+      </section>
     </div>
   );
 }
