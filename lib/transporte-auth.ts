@@ -1,8 +1,9 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { consultar } from "@/lib/db";
 
 const NOMBRE_COOKIE = "informe_transporte";
+const COOKIE_PASO = "informe_transporte_paso";
 const DOCE_HORAS = 60 * 60 * 12;
 
 export type SesionTransporte = {
@@ -54,6 +55,8 @@ export function leerToken(token: string | undefined): SesionTransporte | null {
 }
 
 export async function sesionTransporte() {
+  const encabezados = await headers();
+  if (encabezados.get("x-transporte-nueva-entrada") === "1") return null;
   const almacen = await cookies();
   const token = leerToken(almacen.get(NOMBRE_COOKIE)?.value);
   if (!token) return null;
@@ -68,16 +71,18 @@ export async function sesionTransporte() {
 
 export async function abrirSesionTransporte(sesion: SesionTransporte) {
   const almacen = await cookies();
-  almacen.set(NOMBRE_COOKIE, firmar(sesion), {
+  const opciones = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: DOCE_HORAS,
-  });
+  };
+  almacen.set(NOMBRE_COOKIE, firmar(sesion), { ...opciones, maxAge: DOCE_HORAS });
+  almacen.set(COOKIE_PASO, "1", { ...opciones, maxAge: 60 });
 }
 
 export async function cerrarSesionTransporte() {
   const almacen = await cookies();
   almacen.delete(NOMBRE_COOKIE);
+  almacen.delete(COOKIE_PASO);
 }

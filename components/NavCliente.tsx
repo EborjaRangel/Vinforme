@@ -39,6 +39,7 @@ export function NavCliente() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={item.href === "/transporte" ? false : undefined}
               aria-current={activo ? "page" : undefined}
               className={`inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold no-underline ${
                 activo ? "text-azul underline decoration-rojo decoration-2 underline-offset-8" : "text-tinta hover:text-azul"

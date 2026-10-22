@@ -72,7 +72,7 @@ export default async function PaginaInicio() {
           {modulos.map((modulo) => {
             const entrada = navegacion.find((item) => item.href === modulo.href);
             return (
-              <Link className="paso block text-tinta no-underline" href={modulo.href} key={modulo.href}>
+              <Link className="paso block text-tinta no-underline" href={modulo.href} key={modulo.href} prefetch={modulo.href === "/transporte" ? false : undefined}>
                 <h3>{entrada?.etiqueta}</h3>
                 <p>{modulo.texto}</p>
               </Link>
