@@ -8,6 +8,9 @@ type Despacho = {
   id: string;
   dirigenteId: string;
   dirigente: string;
+  nombre: string;
+  primerApellido: string;
+  segundoApellido: string;
   tipo: "camion" | "microbus" | "van";
   placas: string;
   choferNombre: string;
@@ -47,10 +50,26 @@ function iconoUnidad(L: typeof import("leaflet"), color: string) {
   });
 }
 
+function ordenar(lista: Despacho[], porDirigente: boolean) {
+  return [...lista].sort((a, b) => {
+    if (porDirigente) {
+      const campos = [a.primerApellido, a.segundoApellido, a.nombre];
+      const otros = [b.primerApellido, b.segundoApellido, b.nombre];
+      for (let indice = 0; indice < campos.length; indice += 1) {
+        const diferencia = campos[indice].localeCompare(otros[indice], "es", { sensitivity: "base" });
+        if (diferencia) return diferencia;
+      }
+    }
+    return new Date(b.entregadoEn).getTime() - new Date(a.entregadoEn).getTime();
+  });
+}
+
 export function MapaTransporte() {
   const caja = useRef<HTMLDivElement>(null);
   const [despachos, setDespachos] = useState<Despacho[]>([]);
+  const [porNombre, setPorNombre] = useState(false);
   const [aviso, setAviso] = useState("Cargando unidades…");
+  const visibles = useMemo(() => ordenar(despachos, porNombre), [despachos, porNombre]);
 
   useEffect(() => {
     void fetch("/api/transporte/despachos")
@@ -120,14 +139,33 @@ export function MapaTransporte() {
   }, [despachos]);
 
   const porDirigente = useMemo(() => {
-    const mapa = new Map<string, { nombre: string; camion: number; microbus: number; van: number }>();
+    const mapa = new Map<string, { nombre: string; primerApellido: string; segundoApellido: string; nombrePila: string; ultimo: string; camion: number; microbus: number; van: number }>();
     for (const unidad of despachos) {
-      const actual = mapa.get(unidad.dirigenteId) ?? { nombre: unidad.dirigente, camion: 0, microbus: 0, van: 0 };
+      const actual = mapa.get(unidad.dirigenteId) ?? {
+        nombre: unidad.dirigente,
+        primerApellido: unidad.primerApellido,
+        segundoApellido: unidad.segundoApellido,
+        nombrePila: unidad.nombre,
+        ultimo: unidad.entregadoEn,
+        camion: 0,
+        microbus: 0,
+        van: 0,
+      };
       actual[unidad.tipo] += 1;
+      if (unidad.entregadoEn > actual.ultimo) actual.ultimo = unidad.entregadoEn;
       mapa.set(unidad.dirigenteId, actual);
     }
-    return [...mapa.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-  }, [despachos]);
+    return [...mapa.values()].sort((a, b) => {
+      if (!porNombre) return new Date(b.ultimo).getTime() - new Date(a.ultimo).getTime();
+      const campos = [a.primerApellido, a.segundoApellido, a.nombrePila];
+      const otros = [b.primerApellido, b.segundoApellido, b.nombrePila];
+      for (let indice = 0; indice < campos.length; indice += 1) {
+        const diferencia = campos[indice].localeCompare(otros[indice], "es", { sensitivity: "base" });
+        if (diferencia) return diferencia;
+      }
+      return 0;
+    });
+  }, [despachos, porNombre]);
 
   return (
     <div className="grid gap-6">
@@ -139,6 +177,11 @@ export function MapaTransporte() {
         <span className="font-bold text-[#704D9F]">Camión</span>
         <span className="font-bold text-[#1E8E3E]">Microbús</span>
         <span className="font-bold text-[#F26B1D]">Van</span>
+      </div>
+      <div className="acciones">
+        <button className={porNombre ? "boton" : "boton-secundario"} type="button" aria-pressed={porNombre} onClick={() => setPorNombre((valor) => !valor)}>
+          Ordenar por dirigente
+        </button>
       </div>
       <section>
         <h2>Unidades por dirigente</h2>
@@ -169,7 +212,7 @@ export function MapaTransporte() {
             </tr>
           </thead>
           <tbody>
-            {despachos.map((unidad) => (
+            {visibles.map((unidad) => (
               <tr key={unidad.id}>
                 <td>{formatoFechaHora(unidad.entregadoEn)}</td>
                 <td>{unidad.dirigente}</td>
@@ -190,7 +233,7 @@ export function MapaTransporte() {
         </table>
       </div>
       <div className="detalle-entregas">
-        {despachos.map((unidad) => (
+        {visibles.map((unidad) => (
           <article className="persona" key={unidad.id}>
             <h3>{unidad.dirigente}</h3>
             <p>

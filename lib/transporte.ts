@@ -17,6 +17,9 @@ export type DespachoLista = {
   id: string;
   dirigenteId: string;
   dirigente: string;
+  nombre: string;
+  primerApellido: string;
+  segundoApellido: string;
   tipo: "camion" | "microbus" | "van";
   placas: string;
   choferNombre: string;
@@ -195,6 +198,9 @@ export async function listarDespachos() {
     id: string;
     dirigente_id: string;
     dirigente: string;
+    nombre: string;
+    primer_apellido: string;
+    segundo_apellido: string;
     tipo: DespachoLista["tipo"];
     placas: string;
     chofer_nombre: string;
@@ -205,7 +211,8 @@ export async function listarDespachos() {
     lugar_texto: string;
     entregado_en: Date;
   }>(`
-    SELECT d.id, d.dirigente_id, g.nombre_completo AS dirigente, d.tipo, d.placas,
+    SELECT d.id, d.dirigente_id, g.nombre_completo AS dirigente,
+           g.nombre, g.primer_apellido, g.segundo_apellido, d.tipo, d.placas,
            d.chofer_nombre, d.chofer_telefono,
            d.ida_vuelta, d.lat, d.lng, d.lugar_texto, d.entregado_en
     FROM despachos d
@@ -217,6 +224,9 @@ export async function listarDespachos() {
       id: fila.id,
       dirigenteId: fila.dirigente_id,
       dirigente: fila.dirigente,
+      nombre: fila.nombre,
+      primerApellido: fila.primer_apellido,
+      segundoApellido: fila.segundo_apellido,
       tipo: fila.tipo,
       placas: fila.placas,
       choferNombre: fila.chofer_nombre,
