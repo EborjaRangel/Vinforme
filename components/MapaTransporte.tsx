@@ -200,7 +200,7 @@ export function MapaTransporte() {
       <section>
         <h2>Entregas</h2>
         <p className="lead">Cada registro es una unidad. Si un dirigente tiene varias, aparece varias veces.</p>
-      <div className="tabla-contenedor">
+        <div className="tabla-contenedor">
         <table className="tabla">
           <thead>
             <tr>
@@ -234,23 +234,8 @@ export function MapaTransporte() {
               </tr>
             ))}
           </tbody>
-        </table>
-      </div>
-      <div className="detalle-entregas">
-        {visibles.map((unidad) => (
-          <article className="persona" key={unidad.id}>
-            <h3>{unidad.dirigente}</h3>
-            <p>
-              {formatoFechaHora(unidad.entregadoEn)} · {NOMBRES[unidad.tipo]} {unidad.placas}
-            </p>
-            <p>
-              {unidad.choferNombre} · {unidad.choferTelefono}
-            </p>
-            <p>{unidad.lugarTexto || "Punto de entrega"}</p>
-            <p>{unidad.idaVuelta ? "Ida y vuelta" : "Solo ida"}</p>
-          </article>
-        ))}
-      </div>
+          </table>
+        </div>
       </section>
     </div>
   );

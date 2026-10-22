@@ -243,24 +243,6 @@ export function PanelAdmin({
               </tbody>
             </table>
           </div>
-
-          <div className="tarjetas-persona">
-            {visibles.map((persona) => (
-              <article className="persona" key={persona.id}>
-                <span className={persona.llego ? "estado estado-ok" : "estado"}>{persona.llego ? "Ya llegó" : "Por llegar"}</span>
-                <h3>{persona.nombreCompleto}</h3>
-                <p>{persona.institucion}</p>
-                <p>
-                  {formatearTelefono(persona.telefono)} · {persona.correo}
-                </p>
-                <p>
-                  Correo {textoCanal(persona.notificacion.correo)} · WhatsApp {textoCanal(persona.notificacion.sms)}
-                  {persona.llegadaEn ? ` · Ingreso ${formatoFechaHora(persona.llegadaEn)}` : ""}
-                </p>
-                <Acciones persona={persona} ocupado={ocupado} onCambiar={cambiar} onReenviar={reenviar} />
-              </article>
-            ))}
-          </div>
         </>
       )}
     </section>
