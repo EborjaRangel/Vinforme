@@ -51,6 +51,11 @@ export const esquemaClave = yup.object({
   clave: yup.string().trim().required("La clave es obligatoria."),
 });
 
+export const esquemaLoginAdmin = yup.object({
+  usuario: yup.string().trim().required("El usuario es obligatorio.").min(3, "El usuario debe tener al menos 3 caracteres.").max(40),
+  clave: yup.string().required("La contraseña es obligatoria."),
+});
+
 export const esquemaLoginTransporte = yup.object({
   usuario: yup.string().trim().required("El usuario es obligatorio.").min(3, "El usuario debe tener al menos 3 caracteres.").max(40),
   clave: yup.string().required("La contraseña es obligatoria.").min(8, "La contraseña debe tener al menos 8 caracteres."),

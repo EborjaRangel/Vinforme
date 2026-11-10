@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { abrirSesionAdmin, claveAdmin, clavesIguales } from "@/lib/auth";
+import { abrirSesionAdmin, claveAdmin, clavesIguales, usuarioAdmin } from "@/lib/auth";
 import { ipDe, solicitudLimitada } from "@/lib/limite";
 
 export const runtime = "nodejs";
@@ -22,9 +22,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, mensaje: "La solicitud no es válida." }, { status: 400 });
   }
 
+  const usuario = cuerpo && typeof cuerpo === "object" && "usuario" in cuerpo ? String((cuerpo as { usuario?: unknown }).usuario ?? "").trim().toLowerCase() : "";
   const clave = cuerpo && typeof cuerpo === "object" && "clave" in cuerpo ? String((cuerpo as { clave?: unknown }).clave ?? "") : "";
-  if (!clavesIguales(clave, esperada)) {
-    return NextResponse.json({ ok: false, mensaje: "La clave de acceso no es correcta." }, { status: 401 });
+  if (usuario !== usuarioAdmin() || !clavesIguales(clave, esperada)) {
+    return NextResponse.json({ ok: false, mensaje: "El usuario o la contraseña no son correctos." }, { status: 401 });
   }
 
   await abrirSesionAdmin();

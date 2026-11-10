@@ -8,6 +8,10 @@ function secreto() {
   return process.env.ADMIN_SECRET || "informe-coyoacan-desarrollo";
 }
 
+export function usuarioAdmin() {
+  return (process.env.ADMIN_USUARIO || "alcaldia").trim().toLowerCase();
+}
+
 export function claveAdmin() {
   if (process.env.ADMIN_PASSWORD) return process.env.ADMIN_PASSWORD;
   if (process.env.NODE_ENV !== "production") return "coyoacan-informe";

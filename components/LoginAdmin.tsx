@@ -2,13 +2,13 @@
 
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
-import { esquemaClave } from "@/lib/validacion";
+import { esquemaLoginAdmin } from "@/lib/validacion";
 
 export function LoginAdmin({ ayuda }: { ayuda: boolean }) {
   const router = useRouter();
   const formik = useFormik({
-    initialValues: { clave: "" },
-    validationSchema: esquemaClave,
+    initialValues: { usuario: "", clave: "" },
+    validationSchema: esquemaLoginAdmin,
     onSubmit: async (valores, helpers) => {
       helpers.setStatus("");
       try {
@@ -19,7 +19,7 @@ export function LoginAdmin({ ayuda }: { ayuda: boolean }) {
         });
         const datos = (await respuesta.json()) as { mensaje?: string };
         if (!respuesta.ok) {
-          helpers.setStatus(datos.mensaje ?? "La clave de acceso no es correcta.");
+          helpers.setStatus(datos.mensaje ?? "El usuario o la contraseña no son correctos.");
           return;
         }
         router.refresh();
@@ -33,10 +33,21 @@ export function LoginAdmin({ ayuda }: { ayuda: boolean }) {
     <section className="pagina contenedor">
       <p className="kicker">Control de acceso</p>
       <h1>Entrada del personal</h1>
-      <p className="lead">Aquí se consulta quién ya llegó y cuántas personas hay en el evento.</p>
+      <p className="lead">Entra con tu usuario y contraseña para consultar quién ya llegó y cuántas personas hay en el evento.</p>
       <form className="formulario login" onSubmit={formik.handleSubmit}>
         <label className="campo">
-          Clave de acceso
+          Usuario
+          <input
+            name="usuario"
+            value={formik.values.usuario}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            autoComplete="username"
+          />
+          {formik.touched.usuario && formik.errors.usuario ? <small className="error">{formik.errors.usuario}</small> : null}
+        </label>
+        <label className="campo">
+          Contraseña
           <input
             name="clave"
             type="password"
@@ -54,8 +65,8 @@ export function LoginAdmin({ ayuda }: { ayuda: boolean }) {
         ) : null}
         {ayuda ? (
           <p className="nota">
-            En esta copia local la clave inicial es <strong>coyoacan-informe</strong>, salvo que ya la hayas cambiado en el
-            archivo .env.local.
+            En esta copia local el usuario inicial es <strong>alcaldia</strong> y la clave es <strong>coyoacan-informe</strong>,
+            salvo que ya las hayas cambiado en el archivo .env.local.
           </p>
         ) : null}
         <button className="boton" type="submit" disabled={formik.isSubmitting}>
