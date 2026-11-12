@@ -16,11 +16,11 @@ export default async function PaginaTransporte() {
     `SELECT usuario, nombre FROM usuarios_transporte WHERE id = $1`,
     [sesion.id],
   );
-  const despachos = await listarDespachos().catch(() => []);
+  const despachos = await listarDespachos(sesion.esAdmin ? undefined : sesion.id).catch(() => []);
   const cuentas = sesion.esAdmin
     ? (
-        await consultar<{ usuario: string; nombre: string; es_admin: boolean; clave_visible: string }>(
-          `SELECT usuario, nombre, es_admin, clave_visible FROM usuarios_transporte ORDER BY es_admin DESC, nombre ASC`,
+        await consultar<{ usuario: string; nombre: string; es_admin: boolean; activo: boolean; clave_visible: string }>(
+          `SELECT usuario, nombre, es_admin, activo, clave_visible FROM usuarios_transporte ORDER BY es_admin DESC, nombre ASC`,
         )
       ).rows
     : [];
@@ -35,7 +35,7 @@ export default async function PaginaTransporte() {
       {sesion.esAdmin ? (
         <section>
           <h2>Cuentas</h2>
-          <p className="lead">Usuarios, tipo y contraseña de quienes pueden despachar.</p>
+          <p className="lead">Para dar de alta o de baja entra a Usuarios. Aquí ves las cuentas actuales.</p>
           <TablaCuentas cuentas={cuentas} />
         </section>
       ) : null}

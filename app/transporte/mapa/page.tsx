@@ -15,7 +15,11 @@ export default async function PaginaMapa() {
     <section className="pagina contenedor">
       <p className="kicker">Transporte</p>
       <h1>Mapa de entregas</h1>
-      <p className="lead">Cada punto es el lugar y la hora en que se entregó una unidad, y el dirigente al que se asignó.</p>
+      <p className="lead">
+        {sesion.esAdmin
+          ? "Como administrador ves todas las entregas de todos los usuarios: camiones, microbuses y vans."
+          : "En el mapa solo aparecen los camiones, microbuses y vans que tú despachaste."}
+      </p>
       <MenuTransporte activo="mapa" esAdmin={sesion.esAdmin} />
       <MapaTransporteCarga />
     </section>

@@ -29,6 +29,7 @@ export type DespachoLista = {
   lng: number;
   lugarTexto: string;
   entregadoEn: string;
+  despachoPor: string;
 };
 
 const globalForControl = globalThis as unknown as { poolControl?: Pool };
@@ -193,7 +194,7 @@ export async function listarDirigentes() {
   );
 }
 
-export async function listarDespachos() {
+export async function listarDespachos(usuarioId?: string) {
   const resultado = await consultar<{
     id: string;
     dirigente_id: string;
@@ -210,15 +211,22 @@ export async function listarDespachos() {
     lng: number;
     lugar_texto: string;
     entregado_en: Date;
-  }>(`
+    despacho_por: string | null;
+  }>(
+    `
     SELECT d.id, d.dirigente_id, g.nombre_completo AS dirigente,
            g.nombre, g.primer_apellido, g.segundo_apellido, d.tipo, d.placas,
            d.chofer_nombre, d.chofer_telefono,
-           d.ida_vuelta, d.lat, d.lng, d.lugar_texto, d.entregado_en
+           d.ida_vuelta, d.lat, d.lng, d.lugar_texto, d.entregado_en,
+           COALESCE(u.nombre, u.usuario, '') AS despacho_por
     FROM despachos d
     JOIN dirigentes g ON g.id = d.dirigente_id
+    LEFT JOIN usuarios_transporte u ON u.id = d.usuario_id
+    ${usuarioId ? "WHERE d.usuario_id = $1" : ""}
     ORDER BY d.entregado_en DESC
-  `);
+  `,
+    usuarioId ? [usuarioId] : [],
+  );
   return resultado.rows.map(
     (fila): DespachoLista => ({
       id: fila.id,
@@ -236,6 +244,7 @@ export async function listarDespachos() {
       lng: Number(fila.lng),
       lugarTexto: lugarCorto(fila.lugar_texto),
       entregadoEn: new Date(fila.entregado_en).toISOString(),
+      despachoPor: fila.despacho_por || "",
     }),
   );
 }

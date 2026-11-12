@@ -13,11 +13,14 @@ export function AltaDespacho() {
   const router = useRouter();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [listo, setListo] = useState(false);
+  const [ocupado, setOcupado] = useState("");
+  const [aviso, setAviso] = useState("");
   const formik = useFormik({
     initialValues: { nombre: "", usuario: "", clave: "" },
     validationSchema: esquemaAltaDespacho,
     onSubmit: async (valores, helpers) => {
       helpers.setStatus("");
+      setAviso("");
       const respuesta = await fetch("/api/transporte/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -29,37 +32,60 @@ export function AltaDespacho() {
         return;
       }
       helpers.resetForm();
-      helpers.setStatus("Persona dada de alta. Ya puede entrar a despachar.");
-      const lista = await fetch("/api/transporte/usuarios").then((item) => item.json() as Promise<{ usuarios?: Usuario[] }>);
-      setUsuarios(lista.usuarios ?? []);
+      helpers.setStatus("Persona dada de alta. Ya puede entrar solo a Transporte.");
+      await recargar();
     },
   });
 
-  useEffect(() => {
-    void fetch("/api/transporte/usuarios")
-      .then(async (respuesta) => {
-        if (respuesta.status === 401) {
-          router.replace("/transporte");
-          return null;
-        }
-        return respuesta.json() as Promise<{ usuarios?: Usuario[] }>;
-      })
-      .then((datos) => {
-        if (!datos) return;
-        setUsuarios(datos.usuarios ?? []);
-        setListo(true);
+  async function recargar() {
+    const respuesta = await fetch("/api/transporte/usuarios");
+    if (respuesta.status === 401) {
+      router.replace("/transporte");
+      return;
+    }
+    const datos = (await respuesta.json()) as { usuarios?: Usuario[] };
+    setUsuarios(datos.usuarios ?? []);
+    setListo(true);
+  }
+
+  async function cambiarEstado(usuario: string, activo: boolean) {
+    setOcupado(usuario);
+    setAviso("");
+    try {
+      const respuesta = await fetch("/api/transporte/usuarios", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario, activo }),
       });
-  }, [router]);
+      const datos = (await respuesta.json()) as { mensaje?: string };
+      if (!respuesta.ok) {
+        setAviso(datos.mensaje ?? "No se pudo actualizar el usuario.");
+        return;
+      }
+      await recargar();
+    } finally {
+      setOcupado("");
+    }
+  }
+
+  useEffect(() => {
+    void recargar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- carga inicial al abrir Usuarios
+  }, []);
 
   if (!listo) return <section className="pagina contenedor"><p>Cargando…</p></section>;
 
   return (
     <section className="pagina contenedor">
       <p className="kicker">Transporte</p>
-      <h1>Alta de despacho</h1>
-      <p className="lead">Da de alta a las personas que despachan los micros. Aquí se les asigna usuario y contraseña.</p>
+      <h1>Usuarios</h1>
+      <p className="lead">
+        Da de alta o de baja a las personas que despachan. Cada usuario entra solo a Transporte y en el mapa ve únicamente
+        las unidades que él despachó.
+      </p>
       <MenuTransporte activo="usuarios" esAdmin />
-      <TablaCuentas cuentas={usuarios} />
+      {aviso ? <p className="aviso-error">{aviso}</p> : null}
+      <TablaCuentas cuentas={usuarios} ocupado={ocupado} onEstado={(usuario, activo) => void cambiarEstado(usuario, activo)} />
       <form className="formulario rejilla-form" onSubmit={formik.handleSubmit}>
         <label className="campo">
           Nombre

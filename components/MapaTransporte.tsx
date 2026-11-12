@@ -20,6 +20,7 @@ type Despacho = {
   lng: number;
   lugarTexto: string;
   entregadoEn: string;
+  despachoPor?: string;
 };
 
 const COLORES = { camion: "#704D9F", microbus: "#1E8E3E", van: "#F26B1D" };
@@ -69,12 +70,14 @@ export function MapaTransporte() {
   const [despachos, setDespachos] = useState<Despacho[]>([]);
   const [porNombre, setPorNombre] = useState(false);
   const [aviso, setAviso] = useState("Cargando unidades…");
+  const [esAdmin, setEsAdmin] = useState(false);
   const visibles = useMemo(() => ordenar(despachos, porNombre), [despachos, porNombre]);
 
   useEffect(() => {
     void fetch("/api/transporte/despachos")
       .then((respuesta) => respuesta.json())
-      .then((datos: { despachos?: Despacho[] }) => {
+      .then((datos: { despachos?: Despacho[]; esAdmin?: boolean }) => {
+        setEsAdmin(Boolean(datos.esAdmin));
         setDespachos(datos.despachos ?? []);
         setAviso((datos.despachos ?? []).length ? "" : "Todavía no hay unidades entregadas.");
       })
@@ -115,7 +118,7 @@ export function MapaTransporte() {
         const marca = L.marker([unidad.lat, unidad.lng], { icon: iconoUnidad(L, COLORES[unidad.tipo]) });
         const lugar = unidad.lugarTexto || "Punto de entrega";
         marca.bindPopup(
-          `<strong>${textoPlano(NOMBRES[unidad.tipo])} ${textoPlano(unidad.placas)}</strong><br>${textoPlano(unidad.dirigente)}<br>${textoPlano(lugar)}<br>Teléfono del chofer: ${textoPlano(unidad.choferTelefono)}<br>${textoPlano(formatoFechaHora(unidad.entregadoEn))}`,
+          `<strong>${textoPlano(NOMBRES[unidad.tipo])} ${textoPlano(unidad.placas)}</strong><br>${textoPlano(unidad.dirigente)}${unidad.despachoPor ? `<br>Despachó: ${textoPlano(unidad.despachoPor)}` : ""}<br>${textoPlano(lugar)}<br>Teléfono del chofer: ${textoPlano(unidad.choferTelefono)}<br>${textoPlano(formatoFechaHora(unidad.entregadoEn))}`,
         );
         unidades.addLayer(marca);
       }
@@ -163,6 +166,7 @@ export function MapaTransporte() {
             <tr>
               <th>Hora de entrega</th>
               <th>Dirigente</th>
+              {esAdmin ? <th>Despachó</th> : null}
               <th>Tipo</th>
               <th>Placas</th>
               <th>Chofer</th>
@@ -177,6 +181,7 @@ export function MapaTransporte() {
               <tr key={unidad.id}>
                 <td>{formatoFechaHora(unidad.entregadoEn)}</td>
                 <td>{unidad.dirigente}</td>
+                {esAdmin ? <td>{unidad.despachoPor || "Sin usuario"}</td> : null}
                 <td>{NOMBRES[unidad.tipo]}</td>
                 <td>{unidad.placas}</td>
                 <td>{unidad.choferNombre}</td>

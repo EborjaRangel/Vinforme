@@ -6,9 +6,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  if (!(await sesionTransporte())) {
+  const sesion = await sesionTransporte();
+  if (!sesion) {
     return NextResponse.json({ ok: false, mensaje: "No autorizado." }, { status: 401 });
   }
-  const despachos = await listarDespachos();
-  return NextResponse.json({ ok: true, despachos });
+  const despachos = await listarDespachos(sesion.esAdmin ? undefined : sesion.id);
+  return NextResponse.json({ ok: true, esAdmin: sesion.esAdmin, despachos });
 }
